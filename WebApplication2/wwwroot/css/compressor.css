@@ -1,0 +1,57 @@
+﻿body {
+
+}
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 5px;
+}
+
+.pagination button {
+    padding: 5px 10px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    background-color: #f8f9fa;
+}
+
+.pagination button.active {
+      background-color: #007bff;
+      color: white;
+      border-color: #007bff;
+}
+
+.pagination button:hover:not(.active) {
+     background-color: #e9ecef;
+}
+
+.pagination button:disabled {
+     cursor: not-allowed;
+     opacity: 0.5;
+}
+
+.page-info {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+}
+
+#statusMessage {
+    padding: 8px 12px;
+    margin: 10px 0;
+    border-radius: 4px;
+    display: none;
+}
+
+#statusMessage.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+#statusMessage.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}

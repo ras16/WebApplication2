@@ -1,0 +1,522 @@
+﻿@page
+@model WebApplication2.Pages.CompressorInfoModel
+@{
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="~/css/gaz.css" />
+    <title>Compressor Wells</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="box" style="display: flex; gap: 20px;">
+
+            <select id="listBox1" multiple style="width: 250px; height: 300px;">
+                @foreach (var compressor in Model.CompressorInfoDataList.Select(c => c.Compressor).Distinct().Where(c => !string.IsNullOrEmpty(c)))
+                {
+                    <option value="@compressor">@compressor</option>
+                }
+            </select>
+
+            <div class="buttons">
+
+                <button id="btnMoveRight">→</button>
+                <button id="btnMoveLeft">←</button>
+                <button id="AddWell">Add new Compressor to pool</button>
+
+            </div>
+
+            <select id="listBox2" multiple style="width: 250px; height: 300px;">
+            </select>
+
+        </div>
+
+        <script>
+            $(document).ready(function () {
+                // Move selected items to the right box
+                $("#btnMoveRight").click(function () {
+                    $("#listBox1 option:selected").appendTo("#listBox2");
+                });
+
+                // Move selected items back to the left box
+                $("#btnMoveLeft").click(function () {
+                    $("#listBox2 option:selected").appendTo("#listBox1");
+                });
+            });
+        </script>
+
+        <div class="Calculation">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Gas Rate (m<sup>3</sup>/d)</th>
+                        <th>Down Time (mins)</th>
+                        <th>Down Time (hrs)</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td id="totalGasRate">0</td>
+                        <td id="totalDownTime">0</td>
+                        <td id="totalLiquidRate">0</td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="control-panel">
+
+            <button id="saveChanges" class="btn-primary">Save Changes</button>
+            <button id="addRow" class="btn-success">Add New Row</button>
+            <div id="statusMessage"></div>
+
+        </div>
+
+        <div id="handsontable-grid" style="margin-top: 20px; height: 400px; width: 100%;"></div>
+
+        <!-- Pagination controls -->
+        <div class="pagination">
+
+            <button id="firstPage" title="First Page">&laquo;</button>
+            <button id="prevPage" title="Previous Page">&lsaquo;</button>
+            <div id="pageButtons"></div>
+            <button id="nextPage" title="Next Page">&rsaquo;</button>
+            <button id="lastPage" title="Last Page">&raquo;</button>
+
+        </div>
+
+        <div class="page-info">
+            Page <span id="currentPage">@Model.CurrentPage</span> of <span id="totalPages">@Model.TotalPages</span> | Total Records: <span id="totalRecords">@Model.TotalRecords</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+    <script>
+
+        // Prepare compressor list for dropdown
+        const compressorList = [
+        @foreach (var compressor in Model.CompressorsList)
+        {
+            <text>"@compressor.CompressorName",</text>
+        }
+        ];
+
+        // Initialize data array
+        const compressorData = [
+        @foreach (var item in Model.CompressorInfoDataList)
+        {
+            <text>
+                            {
+                                "id": @item.ID,
+                                "date": "@(item.CompressDate?.ToString("MM/dd/yyyy") ?? "")",
+                                "compressor": "@(item.Compressor ?? "")",
+                                "gasRate": @(item.GasRate?.ToString() ?? "null"),
+                                "downTimeMin": @(item.Downtime?.ToString() ?? "null"),
+                                "downTimeHrs": @(item.Downtime.HasValue ? Math.Round(item.Downtime.Value / 60.0, 2).ToString() : "null"),
+                                "comments": "@(item.Comments?.Replace("\"", "\\\"") ?? "")"
+                            },
+            </text>
+        }
+        ];
+
+        // Get the anti-forgery token
+        const antiForgeryToken = $('input:hidden[name="__RequestVerificationToken"]').val();
+
+        // Log data for debugging
+        console.log("Data loaded:", compressorData);
+
+        // Set up pagination variables
+        let currentPage = @Model.CurrentPage;
+        let totalPages = @Model.TotalPages;
+        let totalRecords = @Model.TotalRecords;
+        const pageSize = @Model.PageSize;
+
+        // Initialize HandsOnTable
+        const container = document.getElementById('handsontable-grid');
+        let hot = new Handsontable(container, {
+            data: compressorData,
+            colHeaders: ["Date", "Compressor", "Gas Rate (m³/d)", "Down Time (min)", "Down Time (hrs)", "Comments", "ID"],
+            columns: [
+                { data: "date", type: "date", dateFormat: 'MM/DD/YYYY', correctFormat: true, width: 100 },
+                {
+                    data: "compressor",
+                    type: 'dropdown',
+                    source: compressorList,
+                    strict: false,  // Allow custom input
+                    width: 170
+                },
+                { data: "gasRate", type: "numeric", width: 150, numericFormat: { pattern: '0,0' } },
+                { data: "downTimeMin", type: "numeric", width: 130 },
+                { data: "downTimeHrs", type: "numeric", width: 130, readOnly: true, numericFormat: { pattern: '0.00' } },
+                { data: "comments", type: "text", width: 200 },
+                { data: "id", type: "numeric", width: 50, readOnly: true }
+            ],
+            hiddenColumns: {
+                columns: [6]  // Hide ID column
+            },
+            rowHeaders: true,
+            height: 'auto',
+            width: '100%',
+            stretchH: 'all',
+            manualColumnResize: true,
+            manualRowResize: true,
+            contextMenu: true,
+            licenseKey: 'non-commercial-and-evaluation',
+            afterChange: function(changes, source) {
+                if (!changes || source === 'loadData') return;
+
+                changes.forEach(([row, prop, oldValue, newValue]) => {
+                    if (prop === 'downTimeMin' && newValue !== null && newValue !== '') {
+                        const minutes = parseFloat(newValue);
+                        if (!isNaN(minutes)) {
+                            const hours = Math.round(minutes / 60.0 * 100) / 100;
+                            hot.setDataAtCell(row, 4, hours, 'calculated');
+                        }
+                    }
+                });
+
+                // Update the summary totals after changes
+                updateSummaryTotals();
+            }
+        });
+
+        // Function to calculate and update summary totals
+        function updateSummaryTotals() {
+            const data = hot.getSourceData();
+            let totalGasRate = 0;
+            let totalDownTimeMin = 0;
+            let totalDownTimeHrs = 0;
+
+            data.forEach(row => {
+                if (row.gasRate && !isNaN(parseFloat(row.gasRate))) {
+                    totalGasRate += parseFloat(row.gasRate);
+                }
+                if (row.downTimeMin && !isNaN(parseFloat(row.downTimeMin))) {
+                    totalDownTimeMin += parseFloat(row.downTimeMin);
+                }
+            });
+
+            // Calculate total downtime in hours
+            totalDownTimeHrs = totalDownTimeMin / 60;
+
+            // Update the display
+            document.getElementById('totalGasRate').textContent = totalGasRate.toLocaleString(undefined, {maximumFractionDigits: 2});
+            document.getElementById('totalDownTime').textContent = totalDownTimeMin.toLocaleString(undefined, {maximumFractionDigits: 2});
+            document.getElementById('totalLiquidRate').textContent = totalDownTimeHrs.toLocaleString(undefined, {maximumFractionDigits: 2});
+        }
+
+        // Calculate initial totals
+        updateSummaryTotals();
+
+        // Add new row button functionality
+        document.getElementById('addRow').addEventListener('click', function() {
+            // Get current date in MM/DD/YYYY format
+            const today = new Date();
+            const formattedDate = (today.getMonth() + 1) + '/' + today.getDate() + '/' + today.getFullYear();
+
+            // Show status message
+            showStatus('Adding new row...', 'success');
+
+            // Add new row to the data source with proper defaults
+            compressorData.push({
+                id: 0,  // This will be auto-generated by the database
+                date: formattedDate,
+                compressor: "",
+                gasRate: null,
+                downTimeMin: null,
+                downTimeHrs: null,
+                comments: ""
+            });
+
+            // Refresh the table with the new data
+            hot.loadData(compressorData);
+
+            // Scroll to the bottom
+            hot.scrollViewportTo(compressorData.length - 1);
+
+            // Select the new row's first cell
+            hot.selectCell(compressorData.length - 1, 0);
+
+            showStatus('New row added. Edit the row and click "Save Changes" when done.', 'success');
+
+            // Update totals after adding a new row
+            updateSummaryTotals();
+        });
+
+                document.getElementById('saveChanges').addEventListener('click', function() {
+            showStatus('Saving changes...', 'success');
+
+            try {
+                // Get all data from the table
+                const dataToSave = [];
+                const sourceData = hot.getSourceData();
+
+                for (let i = 0; i < sourceData.length; i++) {
+                    const row = sourceData[i];
+
+                    // Only include rows that have some data (not completely empty)
+                    if (row.compressor || row.gasRate || row.downTimeMin || row.comments) {
+                        // Handle date parsing more safely
+                        let dateValue = null;
+                        if (row.date) {
+                            try {
+                                // Try to parse the date - accept multiple formats
+                                const dateObj = new Date(row.date);
+                                if (!isNaN(dateObj.getTime())) {
+                                    dateValue = dateObj.toISOString();
+                                }
+                            } catch (e) {
+                                console.error("Error parsing date:", row.date, e);
+                            }
+                        }
+
+                        // Convert numeric values properly
+                        let gasRate = null;
+                        if (row.gasRate !== null && row.gasRate !== "" && !isNaN(parseFloat(row.gasRate))) {
+                            gasRate = parseInt(row.gasRate, 10);
+                        }
+
+                        let downtime = null;
+                        if (row.downTimeMin !== null && row.downTimeMin !== "" && !isNaN(parseFloat(row.downTimeMin))) {
+                            downtime = parseInt(row.downTimeMin, 10);
+                        }
+
+                        // Add the processed row
+                        dataToSave.push({
+                            ID: parseInt(row.id, 10) || 0,
+                            CompressDate: dateValue,
+                            Compressor: row.compressor || "",
+                            GasRate: gasRate,
+                            Downtime: downtime,
+                            Comments: row.comments || ""
+                        });
+                    }
+                }
+
+                // Log the data being sent for debugging
+                console.log("Data being sent to server:", JSON.stringify(dataToSave));
+
+                // Get the token
+                const token = $('input[name="__RequestVerificationToken"]').val();
+                console.log("Anti-forgery token:", token ? "Found" : "Not Found");
+
+                if (!token) {
+                    showStatus('Error: Anti-forgery token not found', 'error');
+                    console.error("No anti-forgery token found. Form elements:", $('form').length);
+                    return;
+                }
+
+                // Send data to server with improved error handling
+                $.ajax({
+                    url: '/CompressorInfo?handler=UpdateData',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(dataToSave),
+                    headers: {
+                        "RequestVerificationToken": token,
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    beforeSend: function(xhr) {
+                        console.log("Request about to be sent with token:", token.substring(0, 10) + "...");
+                    },
+                    success: function(result) {
+                        console.log("Server response:", result);
+                        if (result.success) {
+                            showStatus('Data saved successfully!', 'success');
+                            loadPageData(currentPage);
+                        } else {
+                            showStatus('Error: ' + result.message, 'error');
+                            console.error('Save error details:', result);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Save error status:', status);
+                        console.error('Save error response:', xhr.responseText);
+                        console.error('Save error details:', xhr.responseJSON);
+                        console.error('Save error status code:', xhr.status);
+                        showStatus('Error saving data: ' + error, 'error');
+                    }
+                });
+            } catch (e) {
+                console.error("Javascript error during save:", e);
+                showStatus('Error preparing data: ' + e.message, 'error');
+            }
+        });
+
+        // Helper function to show status messages
+        function showStatus(message, type) {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.textContent = message;
+            statusElement.className = type;
+            statusElement.style.display = 'block';
+
+            // Auto-hide after 5 seconds
+            setTimeout(function() {
+                statusElement.style.display = 'none';
+            }, 5000); // Increased from 1000ms to 5000ms to make messages more visible
+        }
+
+        // Pagination functionality
+        function renderPagination() {
+            const pageButtonsContainer = document.getElementById('pageButtons');
+            pageButtonsContainer.innerHTML = '';
+
+            // Calculate which page buttons to show
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+
+            // Adjust start page if we're at the end
+            if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+
+            // Generate page buttons
+            for (let i = startPage; i <= endPage; i++) {
+                const button = document.createElement('button');
+                button.textContent = i;
+                button.classList.toggle('active', i === currentPage);
+                button.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent default button behavior
+                    loadPageData(i);
+                });
+                pageButtonsContainer.appendChild(button);
+            }
+
+            // Update page info
+            document.getElementById('currentPage').textContent = currentPage;
+            document.getElementById('totalPages').textContent = totalPages;
+            document.getElementById('totalRecords').textContent = totalRecords;
+
+            // Enable/disable navigation buttons
+            document.getElementById('firstPage').disabled = currentPage === 1;
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages || totalPages === 0;
+            document.getElementById('lastPage').disabled = currentPage === totalPages || totalPages === 0;
+        }
+
+        // Load page data from server
+        function loadPageData(page) {
+            showStatus('Loading data...', 'success');
+                const url = `/CompressorInfo?handler=PagedData&page=${page}`;
+                console.log('Requesting URL:', url);
+                 console.log('About to send request for page:', page);
+
+            // Store the requested page
+            const requestedPage = page;
+
+            $.ajax({
+                url:  `/CompressorInfo?handler=PagedData&page=${page}`,
+                type: 'GET',
+                data: { page: page },
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "RequestVerificationToken": antiForgeryToken // Add this line
+                },
+                success: function(result) {
+                    if (result.success) {
+                        // Update pagination variables
+                        currentPage = result.pagination.currentPage;
+                        totalPages = result.pagination.totalPages;
+                        totalRecords = result.pagination.totalRecords;
+
+                        // Transform data for HandsOnTable
+                        const tableData = result.data.map(item => {
+                            return {
+                                id: item.id,
+                                date: item.compressDate ? new Date(item.compressDate).toLocaleDateString('en-US') : "",
+                                compressor: item.compressor || "",
+                                gasRate: item.gasRate,
+                                downTimeMin: item.downtime,
+                                downTimeHrs: item.downtime ? Math.round(item.downtime / 60.0 * 100) / 100 : null,
+                                comments: item.comments || ""
+                            };
+                        });
+
+                        // Load data into table
+                        hot.loadData(tableData);
+
+                        // Update pagination UI
+                        renderPagination();
+
+                        // Update summary totals
+                        updateSummaryTotals();
+
+                        showStatus('Data loaded successfully!', 'success');
+
+                        // Update URL without page reload to maintain state
+                        if (history.pushState) {
+                            const newUrl = new URL(window.location.href);
+                            newUrl.searchParams.set('CurrentPage', currentPage);
+                            window.history.pushState({ page: currentPage }, '', newUrl);
+                        }
+                    } else {
+                        showStatus('Error loading data: ' + (result.message || 'Unknown error'), 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log("Error status:", status);
+                    console.log("Error text:", xhr.responseText);
+                    showStatus('Error loading data: ' + (xhr.responseText || error), 'error');
+                }
+            });
+        }
+
+        // Handle browser back/forward buttons
+        window.onpopstate = function(event) {
+            if (event.state && event.state.page) {
+                loadPageData(event.state.page);
+            }
+        };
+
+        // Set up pagination event listeners
+        document.getElementById('firstPage').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentPage > 1) loadPageData(1);
+        });
+
+        document.getElementById('prevPage').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentPage > 1) loadPageData(currentPage - 1);
+        });
+
+        document.getElementById('nextPage').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentPage < totalPages) loadPageData(currentPage + 1);
+        });
+
+        document.getElementById('lastPage').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentPage < totalPages) loadPageData(totalPages);
+        });
+
+        // Initialize pagination
+        renderPagination();
+    </script>
+
+    @Html.AntiForgeryToken()
+</body>
+</html>

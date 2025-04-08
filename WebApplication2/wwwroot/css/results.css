@@ -1,0 +1,55 @@
+﻿body {
+
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+h2{
+    text-align:center;
+}
+
+table {
+    width: 100%;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    height: calc(100vh - 100px);
+}
+
+th, td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+#AddWell{
+    margin-top:-10px;
+}
+.sticky-id {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 10;
+    font-weight: bold;
+    border-right: 2px solid #ccc;
+}
+
+.sticky-id-header {
+    position: sticky;
+    left: 0;
+    background: #f2f2f2;
+    z-index: 10;
+    font-weight: bold;
+    border-right: 2px solid #ccc; 
+}

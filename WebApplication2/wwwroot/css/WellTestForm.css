@@ -1,0 +1,133 @@
+﻿body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: auto;
+}
+
+.container {
+    background-color: #fff;
+    padding: 30px;
+    margin: 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 800px;
+    height: 90%;
+    overflow: auto;
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+    padding-bottom: 30px;
+}
+
+label {
+    font-weight: bold;
+    margin-top: 10px;
+    display: block;
+    color: #555;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+input[type="submit"] {
+    background-color: #2552c4;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+}
+
+    input[type="submit"]:hover {
+        background-color: #45a049;
+    }
+
+/* Make textarea expand vertically */
+textarea {
+    min-height: 50px; /* Minimum height */
+    height: auto; /* Adjust dynamically */
+    max-height: 200px; /* Prevent excessive expansion */
+    resize: vertical;
+}
+
+.form-container {
+    margin: auto;
+}
+
+/* Grid layout: two columns by default, one column on smaller screens */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2px;
+    margin-bottom: 10px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+    padding: 0 30px 0 30px;
+}
+
+    .form-group label {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+input, textarea {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.submit-btn {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+    .submit-btn:hover {
+        background-color: #0056b3;
+    }
+
+/* Responsive adjustments */
+@media (max-width: 700px) {
+    .grid-container {
+        grid-template-columns: 1fr; /* Switch to single-column layout on small screens */
+    }
+}

@@ -1,0 +1,590 @@
+﻿@page
+@model WebApplication2.Pages.GazModel
+@{
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="~/css/gaz.css" />
+    <title>HP Gas Wells</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
+
+</head>
+<body>
+
+    <div class="container">
+
+        <div class="box" style="display: flex; gap: 20px;">
+
+            <select id="listBox1" multiple style="width: 250px; height: 300px;">
+                @foreach (var well in Model.HP_GasDataList.Select(c => c.WellID).Distinct())
+                {
+                    <option value="@well">Well @well</option>
+                }
+            </select>
+
+            <div class="buttons">
+
+                <button id="btnMoveRight">→</button>
+                <button id="btnMoveLeft">←</button>
+                <button id="AddWell">Add new Well to pool</button>
+
+            </div>
+
+            <select id="listBox2" multiple style="width: 250px; height: 300px;">
+
+            </select>
+        </div>
+
+        <script>
+
+            $(document).ready(function () {
+                // Move selected items to the right box
+                $("#btnMoveRight").click(function () {
+                    $("#listBox1 option:selected").appendTo("#listBox2");
+                });
+
+                // Move selected items back to the left box
+                $("#btnMoveLeft").click(function () {
+                    $("#listBox2 option:selected").appendTo("#listBox1");
+                });
+            });
+            s
+        </script>
+
+        <div class="Calculation">
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Sum Qo (m<sup>3</sup>/d)</th>
+                        <th>Avg Tbg Chk </th> @*//new *@
+                        <th>Avg Flowing THP (bar)</th> @*//new *@ 
+                    <th>Avg Flowing THT (degree F)</th> @*//new *@
+                        <th>Down Time (hrs)</th>
+                        <th>Sum Separator Liquid Rate (m<sup>3</sup>/d)</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    <tr>
+                        <td id="totalGasRate">0</td>
+                        <td id="avgTbgChk">0</td>
+                        <td id="avgTHP">0</td>
+                        <td id="avgTHT">0</td>
+                        <td id="totalDownTime">0</td>
+                        <td id="totalLiquidRate">0</td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+        </div>
+
+        <div class="control-panel">
+
+            <button id="saveChanges" class="btn-primary">Save Changes</button>
+            <button id="addRow" class="btn-success">Add New Row</button>
+            <div id="statusMessage"></div>
+
+        </div>
+
+        <div id="handsontable-grid" style="margin-top: 20px; height: 500px; width: 100%;"></div>
+
+        <!-- Pagination controls -->
+        <div class="pagination">
+
+            <button id="firstPage" title="First Page">&laquo;</button>
+            <button id="prevPage" title="Previous Page">&lsaquo;</button>
+            <div id="pageButtons"></div>
+            <button id="nextPage" title="Next Page">&rsaquo;</button>
+            <button id="lastPage" title="Last Page">&raquo;</button>
+
+        </div>
+
+        <div class="page-info">
+            Page <span id="currentPage">@Model.CurrentPage</span> of <span id="totalPages">@Model.TotalPages</span> | Total Records: <span id="totalRecords">@Model.TotalRecords</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+
+    <script>
+
+        // Initialize data array
+        const gasData = [
+        @foreach (var item in Model.HP_GasDataList)
+        {
+            <text>
+                    {
+                        "id": @item.ID,
+                        "wellId": @item.WellID,
+                        "date": "@(item.Date.ToString("MM/dd/yyyy"))",
+                        "flowRate": @(item.Flow_rate_m3_per_day?.ToString() ?? "null"),
+                        "tbgChk": @(item.Tbg_chk_mm?.ToString() ?? "null"),
+                        "fthpBar": @(item.Fthp_bar?.ToString() ?? "null"),
+                        "pipeId": @(item.Pipe_id_mm?.ToString() ?? "null"),
+                        "orifice": @(item.Orifice_mm?.ToString() ?? "null"),
+                        "diffP": @(item.Diff_p_in_H2O?.ToString() ?? "null"),
+                        "fthtF": @(item.Ftht_f?.ToString() ?? "null"),
+                        "downTime": @(item.Down_time_hrs?.ToString() ?? "null"),
+                        "sepLiqRate": @(item.Sep_liq_rate_m3_per_day?.ToString() ?? "null"),
+                        "comments": "@(item.Comments?.Replace("\"", "\\\"") ?? "")"
+                    },
+            </text>
+        }
+        ];
+            // Define WellID options for dropdown
+        const wellIdOptions = [
+        @foreach (var well in Model.WellsList)
+        {
+            <text>
+                    {
+                        id: @well.WellID,
+                        name: "@(well.WellID + " - " + well.WellName)"
+                    },
+            </text>
+        }
+        ];
+
+        // Get the anti-forgery token
+        const antiForgeryToken = $('input:hidden[name="__RequestVerificationToken"]').val();
+
+        // Log data for debugging
+        console.log("Data loaded:", gasData);
+
+        // Set up pagination variables
+        let currentPage = @Model.CurrentPage;
+        let totalPages = @Model.TotalPages;
+        let totalRecords = @Model.TotalRecords;
+        const pageSize = @Model.PageSize;
+
+        // Log data for debugging
+        console.log("Gas data loaded:", gasData);
+
+        // Initialize HandsOnTable
+        const container = document.getElementById('handsontable-grid');
+        let hot = new Handsontable(container, {
+            data: gasData,
+            colHeaders: ["Well ID", "Date", "Qo (m³/d)", "Tbg Chk (mm)", "FTHP (bar)", "Pipe ID (mm)",
+                        "Orifice (mm)", "Diff P (in H₂O)", "FTHT (°F)", "Down Time (hrs)", "Sep Liq Rate (m³/d)", "Comments", "ID"],
+            columns: [
+               {
+                data: "wellId",
+                type: 'dropdown',
+                source: wellIdOptions.map(well => well.name),
+                strict: true,
+                width: 200,
+                renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                    Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+                    // Find the matching well object
+                    const matchingWell = wellIdOptions.find(well =>
+                        well.name === value || well.id.toString() === value
+                    );
+
+                    // Set the cell value to the full well name/ID
+                    td.textContent = matchingWell ? matchingWell.name : value;
+                }
+            },
+                { data: "date", type: "date", dateFormat: 'MM/DD/YYYY', correctFormat: true, width: 100 },
+                { data: "flowRate", type: "numeric", width: 120, numericFormat: { pattern: '0,0.00' } },
+                { data: "tbgChk", type: "numeric", width: 120, numericFormat: { pattern: '0.00' } },
+                { data: "fthpBar", type: "numeric", width: 120, numericFormat: { pattern: '0.00' } },
+                { data: "pipeId", type: "numeric", width: 120, numericFormat: { pattern: '0.00' } },
+                { data: "orifice", type: "numeric", width: 120, numericFormat: { pattern: '0.00' } },
+                { data: "diffP", type: "numeric", width: 120, numericFormat: { pattern: '0.00' } },
+                { data: "fthtF", type: "numeric", width: 120, numericFormat: { pattern: '0.00' } },
+                { data: "downTime", type: "numeric", width: 120, numericFormat: { pattern: '0.00' } },
+                { data: "sepLiqRate", type: "numeric", width: 120, numericFormat: { pattern: '0.00' } },
+                { data: "comments", type: "text", width: 200 },
+                { data: "id", type: "numeric", width: 50, readOnly: true }
+            ],
+            hiddenColumns: {
+                columns: [12]  // Hide ID column
+            },
+            rowHeaders: true,
+            height: 'auto',
+            width: '100%',
+            stretchH: 'all',
+            manualColumnResize: true,
+            manualRowResize: true,
+            contextMenu: true,
+            licenseKey: 'non-commercial-and-evaluation',
+            afterChange: function(changes, source) {
+                     if (!changes || source === 'loadData') return;
+
+                // Modify the wellId to store only the numeric ID
+                if (changes.some(change => change[1] === 'wellId')) {
+                    changes.forEach(change => {
+                        const [row, prop, oldValue, newValue] = change;
+                        if (prop === 'wellId') {
+                            const matchingWell = wellIdOptions.find(well => well.name === newValue);
+                            if (matchingWell) {
+                                hot.setDataAtRowProp(row, 'wellId', matchingWell.id);
+                            }
+                        }
+                    });
+                }
+
+                // Update the summary totals
+                updateSummaryTotals();
+            }
+        });
+
+        // Function to calculate and update summary totals
+        function updateSummaryTotals() {
+            const data = hot.getSourceData();
+            let totalGasRate = 0;
+            let totalDownTime = 0;
+            let totalLiquidRate = 0;
+
+            // Variables for calculating averages
+            let totalTbgChk = 0;
+            let totalTHP = 0;
+            let totalTHT = 0;
+            let tbgChkCount = 0;
+            let thpCount = 0;
+            let thtCount = 0;
+
+            data.forEach(row => {
+                if (row.flowRate && !isNaN(parseFloat(row.flowRate))) {
+                    totalGasRate += parseFloat(row.flowRate);
+                }
+                if (row.downTime && !isNaN(parseFloat(row.downTime))) {
+                    totalDownTime += parseFloat(row.downTime);
+                }
+                if (row.sepLiqRate && !isNaN(parseFloat(row.sepLiqRate))) {
+                    totalLiquidRate += parseFloat(row.sepLiqRate);
+                }
+                  // Calculate averages for Tbg Chk, THP, and THT
+                if (row.tbgChk && !isNaN(parseFloat(row.tbgChk))) {
+                    totalTbgChk += parseFloat(row.tbgChk);
+                    tbgChkCount++;
+                }
+                if (row.fthpBar && !isNaN(parseFloat(row.fthpBar))) {
+                    totalTHP += parseFloat(row.fthpBar);
+                    thpCount++;
+                }
+                if (row.fthtF && !isNaN(parseFloat(row.fthtF))) {
+                    totalTHT += parseFloat(row.fthtF);
+                    thtCount++;
+                }
+            });
+
+            // Calculate averages
+            const avgTbgChk = tbgChkCount > 0 ? totalTbgChk / tbgChkCount : 0;
+            const avgTHP = thpCount > 0 ? totalTHP / thpCount : 0;
+            const avgTHT = thtCount > 0 ? totalTHT / thtCount : 0;
+
+            document.getElementById('totalGasRate').textContent = totalGasRate.toLocaleString(undefined, {maximumFractionDigits: 2});
+            document.getElementById('totalDownTime').textContent = totalDownTime.toLocaleString(undefined, {maximumFractionDigits: 2});
+            document.getElementById('totalLiquidRate').textContent = totalLiquidRate.toLocaleString(undefined, {maximumFractionDigits: 2});
+            document.getElementById('avgTbgChk').textContent = avgTbgChk.toLocaleString(undefined, {maximumFractionDigits: 2});
+            document.getElementById('avgTHP').textContent = avgTHP.toLocaleString(undefined, {maximumFractionDigits: 2});
+            document.getElementById('avgTHT').textContent = avgTHT.toLocaleString(undefined, {maximumFractionDigits: 2});
+        }
+
+        // Calculate initial totals
+        updateSummaryTotals();
+
+        // Add new row button functionality
+        document.getElementById('addRow').addEventListener('click', function() {
+            // Get current date in MM/DD/YYYY format
+            const today = new Date();
+            const formattedDate = (today.getMonth() + 1) + '/' + today.getDate() + '/' + today.getFullYear();
+
+            // Show status message
+            showStatus('Adding new row...', 'success');
+
+            // Get new well ID (can be improved to suggest next available ID)
+            const wellIds = gasData.map(row => parseInt(row.wellId || 0));
+            const suggestedWellId = wellIds.length > 0 ? Math.max(...wellIds) : 1;
+
+            // Add new row to the data source with proper defaults
+            gasData.push({
+                id: 0,  // This will be auto-generated by the database
+                wellId: suggestedWellId,
+                date: formattedDate,
+                flowRate: null,
+                tbgChk: null,
+                fthpBar: null,
+                pipeId: null,
+                orifice: null,
+                diffP: null,
+                fthtF: null,
+                downTime: null,
+                sepLiqRate: null,
+                comments: ""
+            });
+
+            // Refresh the table with the new data
+            hot.loadData(gasData);
+
+            // Scroll to the bottom
+            hot.scrollViewportTo(gasData.length - 1);
+
+            // Select the new row's first cell
+            hot.selectCell(gasData.length - 1, 0);
+
+            showStatus('New row added. Edit the row and click "Save Changes" when done.', 'success');
+            // Update totals after adding a new row
+            updateSummaryTotals();
+        });
+
+        // Save changes button functionality
+                document.getElementById('saveChanges').addEventListener('click', function() {
+            showStatus('Saving changes...', 'success');
+
+            try {
+                // Get all data from the table
+                const dataToSave = [];
+                const sourceData = hot.getSourceData();
+
+                for (let i = 0; i < sourceData.length; i++) {
+                    const row = sourceData[i];
+
+                    // Only include rows that have some data (not completely empty)
+                    if (row.wellId || row.flowRate || row.downTime || row.comments || row.tbgChk) {
+                        // Handle date parsing more safely
+                        let dateValue = null;
+                        if (row.date) {
+                            try {
+                                // Try to parse the date - accept multiple formats
+                                const dateObj = new Date(row.date);
+                                if (!isNaN(dateObj.getTime())) {
+                                    dateValue = dateObj.toISOString();
+                                }
+                            } catch (e) {
+                                console.error("Error parsing date:", row.date, e);
+                            }
+                        }
+
+                        // Add the processed row
+                        dataToSave.push({
+                            ID: parseInt(row.id, 10) || 0,
+                            WellID: parseInt(row.wellId, 10) || 0,
+                            Date: dateValue,
+                            Flow_rate_m3_per_day: row.flowRate !== null && row.flowRate !== "" ? parseFloat(row.flowRate) : null,
+                            Tbg_chk_mm: row.tbgChk !== null && row.tbgChk !== "" ? parseFloat(row.tbgChk) : null,
+                            Fthp_bar: row.fthpBar !== null && row.fthpBar !== "" ? parseFloat(row.fthpBar) : null,
+                            Pipe_id_mm: row.pipeId !== null && row.pipeId !== "" ? parseFloat(row.pipeId) : null,
+                            Orifice_mm: row.orifice !== null && row.orifice !== "" ? parseFloat(row.orifice) : null,
+                            Diff_p_in_H2O: row.diffP !== null && row.diffP !== "" ? parseFloat(row.diffP) : null,
+                            Ftht_f: row.fthtF !== null && row.fthtF !== "" ? parseFloat(row.fthtF) : null,
+                            Down_time_hrs: row.downTime !== null && row.downTime !== "" ? parseFloat(row.downTime) : null,
+                            Sep_liq_rate_m3_per_day: row.sepLiqRate !== null && row.sepLiqRate !== "" ? parseFloat(row.sepLiqRate) : null,
+                            Comments: row.comments || ""
+                        });
+                    }
+                }
+
+                // Log the data being sent for debugging
+                console.log("Data being sent to server:", JSON.stringify(dataToSave));
+
+                // Get the token
+                const token = $('input[name="__RequestVerificationToken"]').val();
+
+                if (!token) {
+                    showStatus('Error: Anti-forgery token not found', 'error');
+                    return;
+                }
+
+                // Send data to server
+                $.ajax({
+                    url: '/HP_Gas?handler=UpdateData',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(dataToSave),
+                    headers: {
+                        "RequestVerificationToken": token,
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    success: function(result) {
+                        console.log("Server response:", result);
+                        if (result.success) {
+                            showStatus('Data saved successfully!', 'success');
+                            loadPageData(currentPage);
+                        } else {
+                            showStatus('Error: ' + result.message, 'error');
+                            console.error('Save error details:', result);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Save error status:', status);
+                        console.error('Save error response:', xhr.responseText);
+                        showStatus('Error saving data: ' + error, 'error');
+                    }
+                });
+            } catch (e) {
+                console.error("Javascript error during save:", e);
+                showStatus('Error preparing data: ' + e.message, 'error');
+            }
+        });
+        // Helper function to show status messages
+        function showStatus(message, type) {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.textContent = message;
+            statusElement.className = type;
+            statusElement.style.display = 'block';
+
+            // Auto-hide after 5 seconds
+            setTimeout(function() {
+                statusElement.style.display = 'none';
+            }, 5000);
+        }
+                // Pagination functionality
+        function renderPagination() {
+            const pageButtonsContainer = document.getElementById('pageButtons');
+            pageButtonsContainer.innerHTML = '';
+
+            // Calculate which page buttons to show
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+
+            // Adjust start page if we're at the end
+            if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+
+            // Generate page buttons
+            for (let i = startPage; i <= endPage; i++) {
+                const button = document.createElement('button');
+                button.textContent = i;
+                button.classList.toggle('active', i === currentPage);
+                button.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent default button behavior
+                    loadPageData(i);
+                });
+                pageButtonsContainer.appendChild(button);
+            }
+
+            // Update page info
+            document.getElementById('currentPage').textContent = currentPage;
+            document.getElementById('totalPages').textContent = totalPages;
+            document.getElementById('totalRecords').textContent = totalRecords;
+
+            // Enable/disable navigation buttons
+            document.getElementById('firstPage').disabled = currentPage === 1;
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages || totalPages === 0;
+            document.getElementById('lastPage').disabled = currentPage === totalPages || totalPages === 0;
+        }
+
+        // Load page data from server
+        function loadPageData(page) {
+            showStatus('Loading data...', 'success');
+
+            // Store the requested page
+            const requestedPage = page;
+
+            $.ajax({
+                url: `/HP_Gas?handler=PagedData&page=${page}`,
+                type: 'GET',
+                data: { page: page },
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                    "RequestVerificationToken": antiForgeryToken
+                },
+                success: function(result) {
+                    if (result.success) {
+                        // Update pagination variables
+                        currentPage = result.pagination.currentPage;
+                        totalPages = result.pagination.totalPages;
+                        totalRecords = result.pagination.totalRecords;
+
+                        // Transform data for HandsOnTable
+                        const tableData = result.data.map(item => {
+                            return {
+                                id: item.id,
+                                wellId: item.wellID,
+                                date: item.date ? new Date(item.date).toLocaleDateString('en-US') : "",
+                                flowRate: item.flow_rate_m3_per_day,
+                                tbgChk: item.tbg_chk_mm,
+                                fthpBar: item.fthp_bar,
+                                pipeId: item.pipe_id_mm,
+                                orifice: item.orifice_mm,
+                                diffP: item.diff_p_in_H2O,
+                                fthtF: item.ftht_f,
+                                downTime: item.down_time_hrs,
+                                sepLiqRate: item.sep_liq_rate_m3_per_day,
+                                comments: item.comments || ""
+                            };
+                        });
+
+                        // Load data into table
+                        hot.loadData(tableData);
+
+                        // Update pagination UI
+                        renderPagination();
+
+                        // Update summary totals
+                        updateSummaryTotals();
+
+                        showStatus('Data loaded successfully!', 'success');
+
+                        // Update URL without page reload to maintain state
+                        if (history.pushState) {
+                            const newUrl = new URL(window.location.href);
+                            newUrl.searchParams.set('CurrentPage', currentPage);
+                            window.history.pushState({ page: currentPage }, '', newUrl);
+                        }
+                    } else {
+                        showStatus('Error loading data: ' + (result.message || 'Unknown error'), 'error');
+                    }
+                },
+
+                error: function(xhr, status, error) {
+                    console.log("Error status:", status);
+                    console.log("Error text:", xhr.responseText);
+                    showStatus('Error loading data: ' + (xhr.responseText || error), 'error');
+                }
+            });
+        }
+
+        // Handle browser back/forward buttons
+        window.onpopstate = function(event) {
+            if (event.state && event.state.page) {
+                loadPageData(event.state.page);
+            }
+        };
+                // Set up pagination event listeners
+        document.getElementById('firstPage').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentPage > 1) loadPageData(1);
+        });
+
+        document.getElementById('prevPage').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentPage > 1) loadPageData(currentPage - 1);
+        });
+
+        document.getElementById('nextPage').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentPage < totalPages) loadPageData(currentPage + 1);
+        });
+
+        document.getElementById('lastPage').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentPage < totalPages) loadPageData(totalPages);
+        });
+
+        // Initialize pagination
+        renderPagination();
+    </script>
+
+    @Html.AntiForgeryToken()
+</body>
+</html>

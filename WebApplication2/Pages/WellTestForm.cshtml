@@ -1,0 +1,182 @@
+﻿@page
+@model WebApplication2.Pages.WellTestFormModel
+@{
+}
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Entry Form</title>
+    <link rel="stylesheet" href="~/css/style.css" />
+
+</head>
+
+<body>
+    <div class="container">
+        <h2>WellTest Entry Form</h2>
+
+        <form method="post" class="form-container">
+            <div class="grid-container">
+                <div class="form-group">
+                    <label for="well_id">WellID:</label>
+                    <select name="Form.well_id" id="well_id" required>
+                        <option value="" disabled selected>Please Select WellID</option>
+                        @foreach (var item in Model.WellsList)
+                        {
+                            <option value="@item.WellID">@item.WellID - @item.WellName</option>
+                        }
+                    </select>
+                    <br><br>
+                </div>
+                <div class="form-group">
+                    <label for="test_date">Date:</label>
+                    <input type="date" id="test_date" asp-for="Form.test_date" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="prod_int">Prod Int:</label>
+                    <input type="text" id="prod_int" asp-for="Form.prod_int"><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="test_type">Type</label>
+                    <input type="text" id="test_type" asp-for="Form.test_type" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="flow_type">Flow Type:</label>
+                    <input type="text" id="flow_type" asp-for="Form.flow_type" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="hours_tested">Hours Tested:</label>
+                    <input type="number" step="any" id="hours_tested" asp-for="Form.hours_tested" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="avg_tbg_choke_64">Avg Tbg Choke 64:</label>
+                    <input type="number" step="any" id="avg_tbg_choke_64" asp-for="Form.avg_tbg_choke_64" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="avg_csg_choke_64">Avg Csg Choke 64:</label>
+                    <input type="number" step="any" id="avg_csg_choke_64" asp-for="Form.avg_csg_choke_64" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="avg_thp_barg">Avg THP barg:</label>
+                    <input type="number" step="any" id="avg_thp_barg" asp-for="Form.avg_thp_barg" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="avg_tht_f">Avg THT F:</label>
+                    <input type="number" step="any" id="avg_tht_f" asp-for="Form.avg_tht_f" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="avg_chp_barg">Avg CHP barg:</label>
+                    <input type="number" step="any" id="avg_chp_barg" asp-for="Form.avg_chp_barg" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="avg_oil_m3_per_day">Avg Oil m<sup>3</sup>/d:</label>
+                    <input type="number" step="any" id="avg_oil_m3_per_day" asp-for="Form.avg_oil_m3_per_day" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="avg_water_m3_per_day">Avg Water m<sup>3</sup>/d:</label>
+                    <input type="number" step="any" id="avg_water_m3_per_day" asp-for="Form.avg_water_m3_per_day" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="avg_gas_10_6_m3_per_day">Avg Gas (10<sup>6</sup>m<sup>3</sup>/d):</label>
+                    <input type="number" step="any" id="avg_gas_10_6_m3_per_day" asp-for="Form.avg_gas_10_6_m3_per_day" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="gor">GOR:</label>
+                    <input type="number" step="any" id="gor" asp-for="Form.gor" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="avg_inj_gas_rate">Avg Inj Gas Rate:</label>
+                    <input type="number" step="any" id="avg_inj_gas_rate" asp-for="Form.avg_inj_gas_rate" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="oil_sg">Oil sg:</label>
+                    <input type="number" step="any" id="oil_sg" asp-for="Form.oil_sg" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="gas_sg">Gas sg:</label>
+                    <input type="number" step="any" id="gas_sg" asp-for="Form.gas_sg" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="oil_mt_per_day">Oil MT/d:</label>
+                    <input type="number" step="any" id="oil_mt_per_day" asp-for="Form.oil_mt_per_day" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="nacl_ppm">NaCL ppm:</label>
+                    <input type="number" step="any" id="nacl_ppm" asp-for="Form.nacl_ppm" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="bsw">BSW:</label>
+                    <input type="number" step="any" id="bsw" asp-for="Form.bsw" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="test_company">Test Company:</label>
+                    <input type="text" id="test_company" asp-for="Form.test_company" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="rig_kit">Rig/Kit:</label>
+                    <input type="text" id="rig_kit" asp-for="Form.rig_kit" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="entered_by">Entered By:</label>
+                    <input type="text" id="entered_by" asp-for="Form.entered_by" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="no_prod">noProd:</label>
+                    <input type="text" id="no_prod" asp-for="Form.no_prod" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="interval_top">IntervalTop:</label>
+                    <input type="number" step="any" id="interval_top" asp-for="Form.interval_top" required><br><br>
+                </div>
+                <div class="form-group">
+                    <label for="interval_bottom">Interval Bottom:</label>
+                    <input type="number" step="any" id="interval_bottom" asp-for="Form.interval_bottom" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="representative_ind">Representative Ind:</label>
+                    <input type="number" step="any" id="representative_ind" asp-for="Form.representative_ind" required><br><br>
+                </div>
+            </div>
+
+            <label for="comments">Comments:</label>
+            <textarea id="comments" asp-for="Form.comments" rows="4" cols="50"></textarea><br><br>
+
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+    <script>
+        document.querySelector("form").addEventListener("submit", function(e) {
+            console.log("Selected value:", document.getElementById("well_id").value);
+        });
+    </script>
+</body>
+
+</html>

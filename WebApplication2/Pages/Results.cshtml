@@ -1,0 +1,95 @@
+@page
+@model WebApplication2.Pages.Shared.Results
+
+@{
+    ViewData["Title"] = "Submitted Data";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/css/results.css" />
+    <title>Data Display</title>
+</head>
+<body>
+    <h2>Production Data Display</h2>
+    @if (Model.FormDataList.Count == 0)
+    {
+        <p>No data submitted yet.</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th class="sticky-id-header">ID</th>
+                    <th>Prod Area ID</th>
+                    <th>Date</th>
+                    <th>DayInMonth</th>
+                    <th>SPPFluid</th>
+                    <th>SPPOil</th>
+                    <th>Corr Fact</th>
+                    <th>Avg BSW</th>
+                    <th>Avg BSW SPP</th>
+                    <th>Vol Red Fact</th>
+                    <th>SPP Fl Temp</th>
+                    <th>Oil Dens</th>
+                    <th>Oil Del TNT</th>
+                    <th>Mth Oil IPR</th>
+                    <th>Daily Gas IPR</th>
+                    <th>Avail For Lifting</th>
+                    <th>Lifted Today</th>
+                    <th>Lift Port</th>
+                    <th>Flared Gas</th>
+                    <th>Export Gas</th>
+                    <th>SPP Tot Gas</th>
+                    <th>New Oil (Daily MT)</th>
+                    <th>Comments</th>
+                    <th>Avg Vishka Oil</th>
+                    <th>Vishka Inlet Press</th>
+                    <th>LP Water Inj</th>
+                    <th>HP Water Inj</th>
+                    <th>Water Disposed</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.FormDataList)
+                {
+                    <tr>
+                        <td class="sticky-id">@item.ID</td>
+                        <td>@item.prod_area_id</td>
+                        <td>@item.Date.ToString("yyyy-MM-dd") ?? "N/A"</td>
+                        <td>@item.DayInMonth</td>
+                        <td>@item.SPPFluid</td>
+                        <td>@item.SPPOil</td>
+                        <td>@item.CorrFact</td>
+                        <td>@item.AvgBSW</td>
+                        <td>@item.AvgBSWSPP</td>
+                        <td>@item.VolRedFact</td>
+                        <td>@item.SPPFlTemp</td>
+                        <td>@item.OilDens</td>
+                        <td>@item.OilDelTNT</td>
+                        <td>@item.MthOilIPR</td>
+                        <td>@item.DailyGasIPR</td>
+                        <td>@item.AvailForLifting</td>
+                        <td>@item.LiftedToday</td>
+                        <td>@item.LiftPort</td>
+                        <td>@item.FlaredGas</td>
+                        <td>@item.ExportGas</td>
+                        <td>@item.SPPTotGas</td>
+                        <td>@item.NewOil</td>
+                        <td>@item.Comments</td>
+                        <td>@item.AvgVishkaOil</td>
+                        <td>@item.VishkaInletPress</td>
+                        <td>@item.LPWaterInj</td>
+                        <td>@item.HPWaterInj</td>
+                        <td>@item.WaterDisposed</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</body>
+</html>

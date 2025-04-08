@@ -1,0 +1,115 @@
+﻿/* CSS for Well Page */
+table {
+    margin-top: -20px;
+    width: 100%;
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+th, td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+.sticky-id {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 10;
+    font-weight: bold;
+    border-right: 2px solid #ccc;
+}
+
+.sticky-id-header {
+    position: sticky;
+    left: 0;
+    background: #f2f2f2;
+    z-index: 10;
+    font-weight: bold;
+    border-right: 2px solid #ccc;
+}
+
+.option {
+    background: #D8D8D8;
+    padding: 15px;
+}
+
+label {
+    margin-right: 5px;
+}
+
+.header {
+    font-size: 18px;
+    padding: 5px;
+    margin-bottom: 20px;
+}
+
+/* CSS for that Add button in Well page */
+/* From Uiverse.io by andrew-demchenk0 */
+.button {
+    position: relative;
+    width: 150px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    border: 1px solid #b595bb;
+    background-color: #b595bb;
+}
+
+.button, .button__icon, .button__text {
+    transition: all 0.3s;
+}
+
+    .button .button__text {
+        transform: translateX(30px);
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .button .button__icon {
+        position: absolute;
+        transform: translateX(109px);
+        height: 100%;
+        width: 39px;
+        background-color: #ad6fb8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .button .svg {
+        width: 30px;
+        stroke: #fff;
+    }
+
+    .button:hover {
+        background: #b595bb;
+    }
+
+        .button:hover .button__text {
+            color: transparent;
+        }
+
+        .button:hover .button__icon {
+            width: 148px;
+            transform: translateX(0);
+        }
+
+    .button:active .button__icon {
+        background-color: #2e8644;
+    }
+
+    .button:active {
+        border: 1px solid #2e8644;
+    }

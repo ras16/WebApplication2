@@ -1,0 +1,179 @@
+@page
+@model IndexModel
+
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+    <head>
+
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Production Data Entry Form</title>
+        <link rel="stylesheet" href="~/css/style.css"/>
+    </head>
+
+    <body>
+
+    <div class="container">
+        <h2>Data Entry Form</h2>
+
+        <form method="post" class="form-container">
+
+            <div class="grid-container">
+
+                <div class="form-group">
+
+                    <label for="prod_area_id">Select the Production Field:</label>
+
+                    <select name="prod_area_id" id="prod_area_id">
+                        <option value="1">Burun Field</option>
+                        <option value="3">Ne Burun Field</option>
+                    </select>
+
+                    <br><br>
+
+                </div>
+
+                <div class="form-group">
+                    <label for="Date">Date:</label>
+                    <input type="date" id="Date" name="Date" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="DayInMonth">Day in Month:</label>
+                    <input type="number" id="DayInMonth" name="DayInMonth" min="1" max="31" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="SPPFluid">SPP Fluid Flow Temp. (m<sup>3</sup>/d)</label>
+                    <input type="number" step="any" id="SPPFluid" name="SPPFluid" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="SPPOil">SPP Oil (MT/d):</label>
+                    <input type="number" step="any" id="SPPOil" name="SPPOil" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="CorrFact">Correction Factor:</label>
+                    <input type="number" step="any" id="CorrFact" name="CorrFact" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="AvgBSW">Avg. BS&W:</label>
+                    <input type="number" step="any" id="AvgBSW" name="AvgBSW" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="AvgBSWSPP">Avg. BSW&SPP:</label>
+                    <input type="number" step="any" id="AvgBSWSPP" name="AvgBSWSPP" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="VolRedFact">Volume Reduction Factor:</label>
+                    <input type="number" step="any" id="VolRedFact" name="VolRedFact" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="SPPFlTemp">SPP Flow Temp. (<sup>o</sup>C):</label>
+                    <input type="number" step="any" id="SPPFlTemp" name="SPPFlTemp" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="OilDens">Oil Density 15.56 <sup>o</sup>C (g/cc):</label>
+                    <input type="number" step="any" id="OilDens" name="OilDens" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="OilDelTNT">Oil Delivered on TNT Today (MT):</label>
+                    <input type="number" step="any" id="OilDelTNT" name="OilDelTNT" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="MthOilIPR">MthOilIPR:</label>
+                    <input type="number" step="any" id="MthOilIPR" name="MthOilIPR" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="DailyGasIPR">Daily Gas IPR:</label>
+                    <input type="number" step="any" id="DailyGasIPR" name="DailyGasIPR" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="AvailForLifting">Available For Liftings (MT):</label>
+                    <input type="number" step="any" id="AvailForLifting" name="AvailForLifting" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="LiftedToday">Lifted Today (MT):</label>
+                    <input type="number" step="any" id="LiftedToday" name="LiftedToday" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="LiftPort">Lifting Port:</label>
+                    <input type="number" step="any" id="LiftPort" name="LiftPort" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="FlaredGas">Flared Gas (m<sup>3</sup>/d):</label>
+                    <input type="number" step="any" id="FlaredGas" name="FlaredGas" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="ExportGas">Export Gas (m<sup>3</sup>/d):</label>
+                    <input type="number" step="any" id="ExportGas" name="ExportGas" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="SPPTotGas">SPP Total Gas (m<sup>3</sup>/d):</label>
+                    <input type="number" step="any" id="SPPTotGas" name="SPPTotGas" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="NewOil">New Oil (Daily MT):</label>
+                    <input type="number" step="any" id="NewOil" name="NewOil" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="AvgVishkaOil">Avg. Vishka Oil (MT/d):</label>
+                    <input type="number" step="any" id="AvgVishkaOil" name="AvgVishkaOil" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="VishkaInletPress">Vishka Inlet Pressure (bar):</label>
+                    <input type="number" step="any" id="VishkaInletPress" name="VishkaInletPress" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="LPWaterInj">LP Water Injected (m<sup>3</sup>/d):</label>
+                    <input type="number" step="any" id="LPWaterInj" name="LPWaterInj" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="HPWaterInj">HP Water Injected (m<sup>3</sup>/d):</label>
+                    <input type="number" step="any" id="HPWaterInj" name="HPWaterInj" required><br><br>
+                </div>
+
+                <div class="form-group">
+                    <label for="WaterDisposed">Water Disposed (m<sup>3</sup>/d):</label>
+                    <input type="number" step="any" id="WaterDisposed" name="WaterDisposed" required><br><br>
+                </div>
+            </div>
+            <label for="Comments">Comments:</label>
+
+            <textarea id="Comments" name="Comments" rows="4" cols="50"></textarea><br><br>
+
+            <input type="submit" value="Submit">
+        </form>
+
+        <a href="/Results">View Full Table</a>  
+    </div>
+
+    </body>
+
+</html>

@@ -1,0 +1,405 @@
+﻿@page
+@model WebApplication2.Pages.MPAModel
+@{
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="~/css/style.css" />
+    <link rel="stylesheet" href="~/css/well.css" />
+    <link rel="stylesheet" href="~/css/layout.css" />
+    <title>Gas Wells</title>
+
+</head>
+<body>
+
+    <div class="container">
+
+        <div class="option">
+
+            <label for="wellID"> Select a Well: </label>
+
+            <select name="wellID" id="wellID" onchange="fetchWellData()">
+                <option value=""></option>
+                @foreach (var item in Model.WellsList)
+                {
+                    <option value="@item.WellID">@item.WellName</option>
+                }
+            </select>
+
+        </div>
+
+        <hr />
+        <div id="wellDetails">
+            <p>Select a well to view details.</p>
+        </div>
+        <div id="lastSixWellDetails">
+            <p></p>
+        </div>
+
+        <br /> <br /> <br />
+        <div id="selectedRecordsTable">
+            
+            <table id="bottomTable" border="1">
+                <thead>
+                    <tr>
+                        <th class="sticky-id-header">ID</th>
+                        <th>Well Name</th>
+                        <th>Date</th>
+                        <th>Production Interval</th>
+                        <th>Test Type</th>
+                        <th>Flow Type</th>
+                        <th>Hours Tested</th>
+                        <th>Avg TBG Choke</th>
+                        <th>Avg CSG Choke</th>
+                        <th>Avg THP Barg</th>
+                        <th>Avg THT F</th>
+                        <th>Avg CHP Barg</th>
+                        <th>Avg Oil M3/Day</th>
+                        <th>Avg Water M3/Day</th>
+                        <th>Avg Gas 10^6 M3/Day</th>
+                        <th>GOR</th>
+                        <th>Avg Inj Gas Rate</th>
+                        <th>Oil SG</th>
+                        <th>Gas SG</th>
+                        <th>Oil Mt/Day</th>
+                        <th>NaCl PPM</th>
+                        <th>BSW</th>
+                        <th>Test Company</th>
+                        <th>Rig Kit</th>
+                        <th>Entered By</th>
+                        <th>No Prod</th>
+                        <th>Comments</th>
+                        <th>Interval Top</th>
+                        <th>Interval Bottom</th>
+                        <th>Representative Ind</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+                <tbody id="selectedRecordsBody">
+                    <!-- Selected records will be inserted here -->
+                </tbody>
+            </table>
+        </div>
+
+        @* Add this to enable AJAX calls *@
+        @section Scripts {
+            <script>
+                // Add anti-forgery token to all fetch requests
+                function addAntiForgeryToken(url) {
+                    return url + (url.indexOf('?') === -1 ? '?' : '&') + '_=' + new Date().getTime();
+                }
+                // Override fetch to include the anti-forgery token
+                const originalFetch = window.fetch;
+                window.fetch = function(url, options) {
+                    if (typeof url === 'string' && url.includes('?handler=')) {
+                        url = addAntiForgeryToken(url);
+                        options = options || {};
+                        options.headers = options.headers || {};
+                        options.headers['X-Requested-With'] = 'XMLHttpRequest';
+                    }
+                    return originalFetch.call(this, url, options);
+                };
+            </script>
+        }
+        <script>
+            // Store all well data for reference
+            let allWellData = [];
+
+            function fetchWellData() {
+                const wellID = document.getElementById("wellID").value;
+                if (!wellID) {
+                    document.getElementById("wellDetails").innerHTML = "<p>Select a well to view details.</p>";
+                    document.getElementById("lastSixWellDetails").innerHTML = "";
+                    return;
+                }
+
+                fetch(`?handler=GetWellData&wellID=${wellID}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        allWellData = data; // Store all well data
+                        displayWellData(data);
+                        displayLastSixWellData(data);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        document.getElementById("wellDetails").innerHTML = "<p>Error fetching well data. Please try again.</p>";
+                    });
+            }
+
+                        function displayWellData(data) {
+                if (data && data.length > 0) {
+                    let tableHTML = `
+                        <br>
+                        <h3>Info: This is a Gas Lift   Well Data for <b>${data[0].well_name}</b></h3>
+                        <p class="header">Found ${data.length} record(s):</p>
+                        <table border="1">
+                            <thead>
+                                <tr>
+                                    <th class="sticky-id-header">ID</th>
+                                    <th>Well Name</th>
+                                    <th>Date</th>
+                                    <th>Production Interval</th>
+                                    <th>Test Type</th>
+                                    <th>Flow Type</th>
+                                    <th>Hours Tested</th>
+                                    <th>Avg TBG Choke</th>
+                                    <th>Avg CSG Choke</th>
+                                    <th>Avg THP Barg</th>
+                                    <th>Avg THT F</th>
+                                    <th>Avg CHP Barg</th>
+                                    <th>Avg Oil M3/Day</th>
+                                    <th>Avg Water M3/Day</th>
+                                    <th>Avg Gas 10^6 M3/Day</th>
+                                    <th>GOR</th>
+                                    <th>Avg Inj Gas Rate</th>
+                                    <th>Oil SG</th>
+                                    <th>Gas SG</th>
+                                    <th>Oil Mt/Day</th>
+                                    <th>NaCl PPM</th>
+                                    <th>BSW</th>
+                                    <th>Test Company</th>
+                                    <th>Rig Kit</th>
+                                    <th>Entered By</th>
+                                    <th>No Prod</th>
+                                    <th>Comments</th>
+                                    <th>Interval Top</th>
+                                    <th>Interval Bottom</th>
+                                    <th>Representative Ind</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                    // Loop through all records and add a row for each one
+                    data.forEach(record => {
+                        tableHTML += `
+                            <tr>
+                                <td class="sticky-id">${record.id}</td>
+                                <td>${record.well_name}</td>
+                                <td>${record.test_date}</td>
+                                <td>${record.prod_int}</td>
+                                <td>${record.test_type}</td>
+                                <td>${record.flow_type}</td>
+                                <td>${record.hours_tested}</td>
+                                <td>${record.avg_tbg_choke_64}</td>
+                                <td>${record.avg_csg_choke_64}</td>
+                                <td>${record.avg_thp_barg}</td>
+                                <td>${record.avg_tht_f}</td>
+                                <td>${record.avg_chp_barg}</td>
+                                <td>${record.avg_oil_m3_per_day}</td>
+                                <td>${record.avg_water_m3_per_day}</td>
+                                <td>${record.avg_gas_10_6_m3_per_day}</td>
+                                <td>${record.gor}</td>
+                                <td>${record.avg_inj_gas_rate}</td>
+                                <td>${record.oil_sg}</td>
+                                <td>${record.gas_sg}</td>
+                                <td>${record.oil_mt_per_day}</td>
+                                <td>${record.nacl_ppm}</td>
+                                <td>${record.bsw}</td>
+                                <td>${record.test_company}</td>
+                                <td>${record.rig_kit}</td>
+                                <td>${record.entered_by}</td>
+                                <td>${record.no_prod}</td>
+                                <td>${record.comments}</td>
+                                <td>${record.interval_top}</td>
+                                <td>${record.interval_bottom}</td>
+                                <td>${record.representative_ind}</td>
+                            </tr>`;
+                    });
+
+                    tableHTML += `
+                            </tbody>
+                        </table>`;
+
+                    document.getElementById("wellDetails").innerHTML = tableHTML;
+                } else {
+                    document.getElementById("wellDetails").innerHTML = "<p class='header'>No data found for this Well ID.</p>";
+                }
+            }
+
+            function displayLastSixWellData(data) {
+                if(data && data.length > 0) {
+                    let sliceOfData = data.slice(-6);
+                    let tableHTML = `
+                        <br>
+                        <p class="header">Last ${sliceOfData.length} records for <b>${data[0].well_name}</b>:</p>
+                        <table border="1">
+                            <thead>
+                                <tr>
+                                    <th class="sticky-id-header">ID</th>
+                                    <th>Well Name</th>
+                                    <th>Date</th>
+                                    <th>Avg CSG Choke</th>
+                                    <th>Avg CHP Barg</th>
+                                    <th>Avg TBG Choke</th>
+                                    <th>Avg THP Barg</th>
+                                    <th>Avg Oil M3/Day</th>
+                                    <th>Avg Water M3/Day</th>
+                                    <th>GOR</th>
+                                    <th>Avg Inj Gas Rate</th>
+                                    <th>BSW</th>
+                                    <th>Select</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                    // Loop through all records and add a row for each one
+                    sliceOfData.forEach(record => {
+                        tableHTML += `
+                            <tr data-id="${record.id}">
+                                <td class="sticky-id">${record.id}</td>
+                                <td>${record.well_name}</td>
+                                <td>${record.test_date}</td>
+                                <td>${record.avg_csg_choke_64}</td>
+                                <td>${record.avg_chp_barg}</td>
+                                <td>${record.avg_tbg_choke_64}</td>
+                                <td>${record.avg_thp_barg}</td>
+                                <td>${record.oil_mt_per_day}</td>
+                                <td>${record.avg_water_m3_per_day}</td>
+                                <td>${record.gor}</td>
+                                <td>${record.avg_inj_gas_rate}</td>
+                                <td>${record.bsw}</td>
+                                <td><input type="radio" name="accepted_value" onchange="handleCheckboxChange(this, ${record.id})" />&nbsp;</td>
+                            </tr>`;
+                    });
+
+                    tableHTML += `
+                            </tbody>
+                        </table>`;
+
+                    document.getElementById("lastSixWellDetails").innerHTML = tableHTML;
+                } else {
+                    document.getElementById("lastSixWellDetails").innerHTML = "<p class='header'>No data found for this Well ID.</p>";
+                }
+            }
+
+            function addRecordToBottomTable(record) {
+                // Check if the record is already in the bottom table
+                const existingRow = document.querySelector(`#selectedRecordsBody tr[data-id="${record.id}"]`);
+                if (existingRow) {
+                    return; // Record already exists in the table
+                }
+
+                // Create a new row for the bottom table
+                const newRow = document.createElement('tr');
+                newRow.setAttribute('data-id', record.id);
+
+                // Add cells with record data
+                newRow.innerHTML = `
+                    <td class="sticky-id">${record.id}</td>             
+                    <td>${record.well_name}</td>
+                    <td>${record.test_date}</td>
+                    <td>${record.prod_int}</td>
+                    <td>${record.test_type}</td>
+                    <td>${record.flow_type}</td>
+                    <td>${record.hours_tested}</td>
+                    <td>${record.avg_tbg_choke_64}</td>
+                    <td>${record.avg_csg_choke_64}</td>
+                    <td>${record.avg_thp_barg}</td>
+                    <td>${record.avg_tht_f}</td>
+                    <td>${record.avg_chp_barg}</td>
+                    <td>${record.avg_oil_m3_per_day}</td>
+                    <td>${record.avg_water_m3_per_day}</td>
+                    <td>${record.avg_gas_10_6_m3_per_day}</td>
+                    <td>${record.gor}</td>
+                    <td>${record.avg_inj_gas_rate}</td>
+                    <td>${record.oil_sg}</td>
+                    <td>${record.gas_sg}</td>
+                    <td>${record.oil_mt_per_day}</td>
+                    <td>${record.nacl_ppm}</td>
+                    <td>${record.bsw}</td>
+                    <td>${record.test_company}</td>
+                    <td>${record.rig_kit}</td>
+                    <td>${record.entered_by}</td>
+                    <td>${record.no_prod}</td>
+                    <td>${record.comments}</td>
+                    <td>${record.interval_top}</td>
+                    <td>${record.interval_bottom}</td>
+                    <td>${record.representative_ind}</td>
+                    <td><button onclick="removeRecord(${record.id})">Remove</button></td>
+                `;
+
+                // Add the new row to the table
+                document.getElementById('selectedRecordsBody').appendChild(newRow);
+            }
+
+            // Function to handle checkbox changes
+            function handleCheckboxChange(checkbox, recordId) {
+                if (checkbox.checked) {
+                    // Find the record in the allWellData array
+                    const record = allWellData.find(r => r.id === recordId);
+                    if (record) {
+                        addRecordToAcceptedValueTable(record);
+                    }
+                }
+            }
+
+            // Function to add a record to the bottom table
+            function addRecordToAcceptedValueTable(record) {
+                // Check if the record is already in the bottom table
+                const newRow = document.createElement('tr');
+                const existingRow = document.querySelector(`#selectedRecordsBody tr[data-id="${record.id}"]`);
+                if (existingRow) {
+                    return; // Record already exists in the table
+                }
+
+                // Create a new row for the bottom table
+                newRow.setAttribute('data-id', record.id);
+
+                // Add cells with record data
+                newRow.innerHTML = `
+                    <td class="sticky-id">${record.id}</td>
+                    <td>${record.well_name}</td>
+                    <td>${record.test_date}</td>
+                    <td>${record.prod_int}</td>
+                    <td>${record.test_type}</td>
+                    <td>${record.flow_type}</td>
+                    <td>${record.hours_tested}</td>
+                    <td>${record.avg_tbg_choke_64}</td>
+                    <td>${record.avg_csg_choke_64}</td>
+                    <td>${record.avg_thp_barg}</td>
+                    <td>${record.avg_tht_f}</td>
+                    <td>${record.avg_chp_barg}</td>
+                    <td>${record.avg_oil_m3_per_day}</td>
+                    <td>${record.avg_water_m3_per_day}</td>
+                    <td>${record.avg_gas_10_6_m3_per_day}</td>
+                    <td>${record.gor}</td>
+                    <td>${record.avg_inj_gas_rate}</td>
+                    <td>${record.oil_sg}</td>
+                    <td>${record.gas_sg}</td>
+                    <td>${record.oil_mt_per_day}</td>
+                    <td>${record.nacl_ppm}</td>
+                    <td>${record.bsw}</td>
+                    <td>${record.test_company}</td>
+                    <td>${record.rig_kit}</td>
+                    <td>${record.entered_by}</td>
+                    <td>${record.no_prod}</td>
+                    <td>${record.comments}</td>
+                    <td>${record.interval_top}</td>
+                    <td>${record.interval_bottom}</td>
+                    <td>${record.representative_ind}</td>
+                    <td><button onclick="removeRecord(${record.id})">Remove</button></td>
+                `;
+
+                // Add the new row to the table
+                document.getElementById('selectedRecordsBody').appendChild(newRow);
+            }
+
+            // Function to remove a record from the bottom table
+            function removeRecord(recordId) {
+                const rowToRemove = document.querySelector(`#selectedRecordsBody tr[data-id="${recordId}"]`);
+                if (rowToRemove) {
+                    rowToRemove.remove();
+
+                    // Uncheck the corresponding checkbox in the last six records table if it exists
+                    const checkbox = document.querySelector(`#lastSixWellDetails tr[data-id="${recordId}"] input[type="checkbox"]`);
+                    if (checkbox) {
+                        checkbox.checked = false;
+                    }
+                }
+            }
+        </script>
+    </div>
+</body>
+</html>
