@@ -4,77 +4,155 @@
 }
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="~/css/style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gas Wells Management</title>
+    @* <link rel="stylesheet" href="~/css/style.css" /> *@
     <link rel="stylesheet" href="~/css/well.css" />
-    <link rel="stylesheet" href="~/css/layout.css" />
-    <title>Gas Wells</title>
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  
 </head>
 <body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            
+            <a href="/WellTestForm" class="btn-primary">
+                <i class="fas fa-plus"></i>
+                Add New Test
+            </a>
+        </div>
+    </header>
 
-    <div class="container">
+    <!-- Main Container -->
+    <div class="main-container">
+        @Html.AntiForgeryToken()
 
-        <div class="option">
-
-            <label for="wellID"> Select a Well: </label>
-
-            <select name="wellID" id="wellID" onchange="fetchWellData()">
-                <option value=""></option>
-                @foreach (var item in Model.WellsList)
-                {
-                    <option value="@item.WellID">@item.WellID - @item.WellName</option>
-                }
-            </select>
-
+        <!-- Well Selection Card -->
+        <div class="well-selection-card fade-in">
+            <div class="card-header">
+                
+                <div class="select-group">
+                    <label class="select-label" for="wellID">Choose a well to analyze</label>
+                    <div class="select-wrapper">
+                        <select name="wellID" id="wellID" class="select-input" onchange="fetchWellData()">
+                            <option value="">Select a well...</option>
+                            <option value=""></option>
+                            @foreach (var item in Model.WellsList)
+                            {
+                                <option value="@item.WellID">@item.WellID - @item.WellName</option>
+                            }
+                        </select>
+                
+                        <i class="fas fa-chevron-down select-icon"></i>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <hr />
-        <button class="button" onclick="location.href='/WellTestForm'">
+        <!-- Data Display Card -->
+        <div class="data-card fade-in" style="animation-delay: 0.1s;">
+            <div class="data-card-header">
+                <h3 class="data-card-title">
+                    <i class="fas fa-chart-line"></i>
+                    Well Test Data
+                </h3>
+                <p class="data-card-subtitle">Detailed production and testing information</p>
+            </div>
 
-            <span class="button__text">Add</span>
-            <span class="button__icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke="currentColor" height="24" fill="none" class="svg">
-                    <line y2="19" y1="5" x2="12" x1="12"></line>
-                    <line y2="12" y1="12" x2="19" x1="5"></line>
-                </svg>
-            </span>
-        </button>
-
-        <div id="wellDetails">
-            <p>Select a well to view details.</p>
+            <div id="wellDetails">
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">No Well Selected</h4>
+                    <p>Select a well from the dropdown above to view detailed test data and production metrics.</p>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <script>
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top" id="scrollTopBtn" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
-            function fetchWellData() {
-                const wellID = document.getElementById("wellID").value;
-                if (!wellID) {
-                    document.getElementById("wellDetails").innerHTML = "<p>Select a well to view details.</p>";
-                    return;
-                }
+    <script>
+        function fetchWellData() {
+            const wellID = document.getElementById("wellID").value;
+            const wellDetails = document.getElementById("wellDetails");
 
-                fetch(`?handler=GetWellData&wellID=${wellID}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        displayWellData(data);
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        document.getElementById("wellDetails").innerHTML = "<p>Error fetching well data. Please try again.</p>";
-                    });
+            if (!wellID) {
+                wellDetails.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">No Well Selected</h4>
+                        <p>Select a well from the dropdown above to view detailed test data and production metrics.</p>
+                    </div>
+                `;
+                return;
             }
-            function displayWellData(data) {
-                if (data && data.length > 0) {
-                    let tableHTML = `
-                        <br>
-                        <h3>Summary Data for Well ID: ${data[0].well_id}</h3>
-                        <p class="header">Found ${data.length} record(s):</p>
-                        <table border="1">
+
+            // Show loading state
+            wellDetails.innerHTML = `
+                <div class="loading-overlay">
+                    <div class="spinner"></div>
+                </div>
+            `;
+
+            // Fetch actual data from WellTestSummary
+            fetch(`?handler=GetWellData&wellID=${encodeURIComponent(wellID)}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                displayWellData(data);
+            })
+            .catch(error => {
+                console.error('Error fetching well data:', error);
+                wellDetails.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon" style="color: var(--danger);">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h4 style="margin-bottom: 0.5rem; color: var(--danger);">Error Loading Data</h4>
+                        <p>Unable to fetch well data: ${error.message}. Please try again or contact support.</p>
+                    </div>
+                `;
+            });
+        }
+
+        function displayWellData(data) {
+            const wellDetails = document.getElementById("wellDetails");
+
+            if (data && data.length > 0) {
+                const recordCount = data.length;
+                const wellId = data[0].well_id;
+
+                let tableHTML = `
+                    <div class="data-card-header">
+                        <h3 class="data-card-title">
+                            <i class="fas fa-oil-well"></i>
+                            Well ${wellId} - Test Results
+                        </h3>
+                        <p class="data-card-subtitle">
+                            <span class="status-badge status-success">${recordCount} Record${recordCount > 1 ? 's' : ''}</span>
+                        </p>
+                    </div>
+                    <div class="table-container">
+                        <table class="modern-table">
                             <thead>
                                 <tr>
                                     <th class="sticky-id-header">ID</th>
@@ -86,19 +164,19 @@
                                     <th>Hours Tested</th>
                                     <th>Avg TBG Choke</th>
                                     <th>Avg CSG Choke</th>
-                                    <th>Avg THP Barg</th>
-                                    <th>Avg THT F</th>
-                                    <th>Avg CHP Barg</th>
-                                    <th>Avg Oil M3/Day</th>
-                                    <th>Avg Water M3/Day</th>
-                                    <th>Avg Gas 10^6 M3/Day</th>
+                                    <th>Avg THP (Barg)</th>
+                                    <th>Avg THT (°F)</th>
+                                    <th>Avg CHP (Barg)</th>
+                                    <th>Avg Oil (M³/Day)</th>
+                                    <th>Avg Water (M³/Day)</th>
+                                    <th>Avg Gas (10⁶ M³/Day)</th>
                                     <th>GOR</th>
                                     <th>Avg Inj Gas Rate</th>
                                     <th>Oil SG</th>
                                     <th>Gas SG</th>
-                                    <th>Oil Mt/Day</th>
-                                    <th>NaCl PPM</th>
-                                    <th>BSW</th>
+                                    <th>Oil (Mt/Day)</th>
+                                    <th>NaCl (PPM)</th>
+                                    <th>BSW (%)</th>
                                     <th>Test Company</th>
                                     <th>Rig Kit</th>
                                     <th>Entered By</th>
@@ -106,82 +184,95 @@
                                     <th>Comments</th>
                                     <th>Interval Top</th>
                                     <th>Interval Bottom</th>
-                                    <th>Representative Ind</th>
+                                    <th>Representative</th>
                                 </tr>
                             </thead>
-                            <tbody>`;
+                            <tbody>
+                `;
 
-                    // Loop through all records and add a row for each one
-                    data.forEach(record => {
-                        tableHTML += `
-                            <tr>
-                                    <td class="sticky-id">${record.id}</td>
-                                    <td>${record.well_id}</td>
-                                    <td>${record.test_date}</td>
-                                    <td>${record.prod_int}</td>
-                                    <td>${record.test_type}</td>
-                                    <td>${record.flow_type}</td>
-                                    <td>${record.hours_tested}</td>
-                                    <td>${record.avg_tbg_choke_64}</td>
-                                    <td>${record.avg_csg_choke_64}</td>
-                                    <td>${record.avg_thp_barg}</td>
-                                    <td>${record.avg_tht_f}</td>
-                                    <td>${record.avg_chp_barg}</td>
-                                    <td>${record.avg_oil_m3_per_day}</td>
-                                    <td>${record.avg_water_m3_per_day}</td>
-                                    <td>${record.avg_gas_10_6_m3_per_day}</td>
-                                    <td>${record.gor}</td>
-                                    <td>${record.avg_inj_gas_rate}</td>
-                                    <td>${record.oil_sg}</td>
-                                    <td>${record.gas_sg}</td>
-                                    <td>${record.oil_mt_per_day}</td>
-                                    <td>${record.nacl_ppm}</td>
-                                    <td>${record.bsw}</td>
-                                    <td>${record.test_company}</td>
-                                    <td>${record.rig_kit}</td>
-                                    <td>${record.entered_by}</td>
-                                    <td>${record.no_prod}</td>
-                                    <td>${record.comments}</td>
-                                    <td>${record.interval_top}</td>
-                                    <td>${record.interval_bottom}</td>
-                                    <td>${record.representative_ind}</td>
-                            </tr>`;
-                    });
-
+                data.forEach(record => {
                     tableHTML += `
+                        <tr class="slide-in">
+                            <td class="sticky-id">${record.id}</td>
+                            <td>${record.test_date || '-'}</td>
+                            <td><strong>${record.well_id || '-'}</strong></td>
+                            <td>${record.prod_int || '-'}</td>
+                            <td><span class="status-badge status-success">${record.test_type || '-'}</span></td>
+                            <td>${record.flow_type || '-'}</td>
+                            <td>${record.hours_tested || '-'}</td>
+                            <td>${record.avg_tbg_choke_64 || '-'}</td>
+                            <td>${record.avg_csg_choke_64 || '-'}</td>
+                            <td>${record.avg_thp_barg || '-'}</td>
+                            <td>${record.avg_tht_f || '-'}</td>
+                            <td>${record.avg_chp_barg || '-'}</td>
+                            <td>${record.avg_oil_m3_per_day || '-'}</td>
+                            <td>${record.avg_water_m3_per_day || '-'}</td>
+                            <td>${record.avg_gas_10_6_m3_per_day || '-'}</td>
+                            <td>${record.gor || '-'}</td>
+                            <td>${record.avg_inj_gas_rate || '-'}</td>
+                            <td>${record.oil_sg || '-'}</td>
+                            <td>${record.gas_sg || '-'}</td>
+                            <td>${record.oil_mt_per_day || '-'}</td>
+                            <td>${record.nacl_ppm || '-'}</td>
+                            <td>${record.bsw || '-'}</td>
+                            <td>${record.test_company || '-'}</td>
+                            <td>${record.rig_kit || '-'}</td>
+                            <td>${record.entered_by || '-'}</td>
+                            <td>${record.no_prod || '-'}</td>
+                            <td>${record.comments || '-'}</td>
+                            <td>${record.interval_top || '-'}</td>
+                            <td>${record.interval_bottom || '-'}</td>
+                            <td>${record.representative_ind || '-'}</td>
+                        </tr>
+                    `;
+                });
+
+                tableHTML += `
                             </tbody>
-                        </table>`;
+                        </table>
+                    </div>
+                `;
 
-                    document.getElementById("wellDetails").innerHTML = tableHTML;
-                } else {
-                    document.getElementById("wellDetails").innerHTML = "<p class='header'>No data found for this Well ID.</p>";
-                }
+                wellDetails.innerHTML = tableHTML;
+            } else {
+                wellDetails.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon" style="color: var(--warning);">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <h4 style="margin-bottom: 0.5rem; color: var(--gray-700);">No Data Found</h4>
+                        <p>No test data available for this well. Try selecting a different well or add new test data.</p>
+                    </div>
+                `;
             }
-
-        </script>
-
-        @* Add this to enable AJAX calls *@
-        @section Scripts {
-            <script>
-                // Add anti-forgery token to all fetch requests
-                function addAntiForgeryToken(url) {
-                    return url + (url.indexOf('?') === -1 ? '?' : '&') + '_=' + new Date().getTime();
-                }
-
-                // Override fetch to include the anti-forgery token
-                const originalFetch = window.fetch;
-                window.fetch = function(url, options) {
-                    if (typeof url === 'string' && url.includes('?handler=')) {
-                        url = addAntiForgeryToken(url);
-                        options = options || {};
-                        options.headers = options.headers || {};
-                        options.headers['X-Requested-With'] = 'XMLHttpRequest';
-                    }
-                    return originalFetch.call(this, url, options);
-                };
-            </script>
         }
-    </div>
 
+        // Scroll to top functionality
+        window.addEventListener('scroll', function() {
+            const scrollTopBtn = document.getElementById('scrollTopBtn');
+            if (window.pageYOffset > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Add smooth transitions to select dropdown
+        // document.getElementById('wellID').addEventListener('focus', function() {
+        //     this.parentElement.style.transform = 'scale(0.5.02)';
+        //     this.parentElement.style.transition = 'transform 0.2s ease';
+        // });
+
+        document.getElementById('wellID').addEventListener('blur', function() {
+            this.parentElement.style.transform = 'scale(1)';
+        });
+    </script>
 </body>
 </html>

@@ -6,116 +6,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="~/css/gaz.css" />
+    <link rel="stylesheet" href="~/css/compressor.css" />
     <title>Compressor Wells</title>
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
-
     <div class="container">
+        <!-- Compressor Pool Selection -->
+        <section class="well-pool-section">
+            <h2 class="section-title">
+                <span class="section-icon">
+                    <i class="fas fa-layer-group"></i>
+                </span>
+                Compressor Pool Configuration
+            </h2>
 
-        <div class="box" style="display: flex; gap: 20px;">
+            <div class="well-selection">
+                <div class="select-box">
+                    <h3>Available Compressors</h3>
+                    <select id="listBox1" multiple>
+                        @foreach (var compressor in Model.AllCompressorNames)
+                        {
+                            <option value="@compressor">@compressor</option>
+                        }
+                    </select>
+                </div>
 
-            <select id="listBox1" multiple style="width: 250px; height: 300px;">
-                @foreach (var compressor in Model.CompressorInfoDataList.Select(c => c.Compressor).Distinct().Where(c => !string.IsNullOrEmpty(c)))
-                {
-                    <option value="@compressor">@compressor</option>
-                }
-            </select>
+                <div class="transfer-controls">
+                    <button id="btnMoveRight" class="transfer-btn" title="Add to Pool">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button id="btnMoveLeft" class="transfer-btn" title="Remove from Pool">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                </div>
 
-            <div class="buttons">
-
-                <button id="btnMoveRight">→</button>
-                <button id="btnMoveLeft">←</button>
-                <button id="AddWell">Add new Compressor to pool</button>
-
+                <div class="select-box">
+                    <h3>Selected Pool</h3>
+                    <select id="listBox2" multiple>
+                    </select>
+                </div>
             </div>
 
-            <select id="listBox2" multiple style="width: 250px; height: 300px;">
-            </select>
+            @* <button id="AddWell" class="add-well-btn"> *@
+            @*     <i class="fas fa-plus"></i> *@
+            @*     Add New Compressor to Pool *@
+            @* </button> *@
+        </section>
 
-        </div>
+        <!-- Summary Dashboard -->
+        <section class="summary-section">
+            <div class="section-header">
+                <h2><i class="fas fa-chart-line"></i> Production Summary</h2>
+            </div>
+            <div class="summary-grid">
+                <div class="summary-card primary">
+                    <div class="card-icon">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Total Gas Rate</h3>
+                        <div class="value" id="totalGasRate">0</div>
+                        <div class="unit">m³/d</div>
+                    </div>
+                </div>
+                <div class="summary-card danger">
+                    <div class="card-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Down Time</h3>
+                        <div class="value" id="totalDownTime">0</div>
+                        <div class="unit">hrs</div>
+                    </div>
+                </div>
+                <div class="summary-card success">
+                    <div class="card-icon">
+                        <i class="fas fa-droplet"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Separator Liquid Rate</h3>
+                        <div class="value" id="totalLiquidRate">0</div>
+                        <div class="unit">m³/d</div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <script>
-            $(document).ready(function () {
-                // Move selected items to the right box
-                $("#btnMoveRight").click(function () {
-                    $("#listBox1 option:selected").appendTo("#listBox2");
-                });
+        <!-- Data Management Section -->
+        <section class="data-section">
+            <div class="section-header">
+                <h2><i class="fas fa-database"></i> Data Management</h2>
+            </div>
 
-                // Move selected items back to the left box
-                $("#btnMoveLeft").click(function () {
-                    $("#listBox2 option:selected").appendTo("#listBox1");
-                });
-            });
-        </script>
+            <!-- Filter Panel -->
+            <div class="date-filter-panel">
+                <div class="date-filter-group">
+                    <label for="dateFrom">From:</label>
+                    <input type="date" id="dateFrom" />
+                </div>
+                <div class="date-filter-group">
+                    <label for="dateTo">To:</label>
+                    <input type="date" id="dateTo" />
+                </div>
+                <div class="filter-buttons">
+                    <button id="applyFilter" class="btn-filter">Apply Filter</button>
+                    <button id="clearFilter" class="btn-clear">Clear Date Filter</button>
+                </div>
+                <div class="filter-status" id="filterStatus"></div>
+                <div class="filter-status" id="compressorFilterStatus"></div>
+            </div>
 
-        <div class="Calculation">
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="control-group">
+                    <button id="saveChanges" class="btn success">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                    <button id="addRow" class="btn primary">
+                        <i class="fas fa-plus"></i>
+                        Add New Row
+                    </button>
+                    <button id="exportCSV" class="btn accent">
+                        <i class="fas fa-download"></i>
+                        Export CSV
+                    </button>
+                </div>
+                <div id="statusMessage" class="status-message"></div>
+            </div>
 
-            <table>
+            <!-- Data Table -->
+            <div class="table-container">
+                <div id="handsontable-grid" class="data-grid"></div>
+            </div>
 
-                <thead>
-
-                    <tr>
-                        <th>Gas Rate (m<sup>3</sup>/d)</th>
-                        <th>Down Time (mins)</th>
-                        <th>Down Time (hrs)</th>
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    <tr>
-                        <td id="totalGasRate">0</td>
-                        <td id="totalDownTime">0</td>
-                        <td id="totalLiquidRate">0</td>
-                    </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-        <div class="control-panel">
-
-            <button id="saveChanges" class="btn-primary">Save Changes</button>
-            <button id="addRow" class="btn-success">Add New Row</button>
-            <div id="statusMessage"></div>
-
-        </div>
-
-        <div id="handsontable-grid" style="margin-top: 20px; height: 400px; width: 100%;"></div>
-
-        <!-- Pagination controls -->
-        <div class="pagination">
-
-            <button id="firstPage" title="First Page">&laquo;</button>
-            <button id="prevPage" title="Previous Page">&lsaquo;</button>
-            <div id="pageButtons"></div>
-            <button id="nextPage" title="Next Page">&rsaquo;</button>
-            <button id="lastPage" title="Last Page">&raquo;</button>
-
-        </div>
-
-        <div class="page-info">
-            Page <span id="currentPage">@Model.CurrentPage</span> of <span id="totalPages">@Model.TotalPages</span> | Total Records: <span id="totalRecords">@Model.TotalRecords</span>
-        </div>
+            <!-- Pagination -->
+            <div class="pagination-container">
+                <div class="pagination-controls">
+                    <button id="firstPage" class="pagination-btn" title="First Page">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button id="prevPage" class="pagination-btn" title="Previous Page">
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <div id="pageButtons" class="page-numbers"></div>
+                    <button id="nextPage" class="pagination-btn" title="Next Page">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button id="lastPage" class="pagination-btn" title="Last Page">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </div>
+                <div class="pagination-info">
+                    Page <span id="currentPage">1</span> of <span id="totalPages">1</span> |
+                    Total Records: <span id="totalRecords">0</span>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
     <script>
+        // Global variables
+        let selectedCompressors = [];
+        let currentPage = @Model.CurrentPage;
+        let totalPages = @Model.TotalPages;
+        let totalRecords = @Model.TotalRecords;
+        const pageSize = @Model.PageSize;
+        let currentFromDate = null;
+        let currentToDate = null;
 
         // Prepare compressor list for dropdown
         const compressorList = [
@@ -130,15 +197,15 @@
         @foreach (var item in Model.CompressorInfoDataList)
         {
             <text>
-                            {
-                                "id": @item.ID,
-                                "date": "@(item.CompressDate?.ToString("MM/dd/yyyy") ?? "")",
-                                "compressor": "@(item.Compressor ?? "")",
-                                "gasRate": @(item.GasRate?.ToString() ?? "null"),
-                                "downTimeMin": @(item.Downtime?.ToString() ?? "null"),
-                                "downTimeHrs": @(item.Downtime.HasValue ? Math.Round(item.Downtime.Value / 60.0, 2).ToString() : "null"),
-                                "comments": "@(item.Comments?.Replace("\"", "\\\"") ?? "")"
-                            },
+                        {
+                            "id": @item.ID,
+                            "date": "@(item.CompressDate?.ToString("MM/dd/yyyy") ?? "")",
+                            "compressor": "@(item.Compressor ?? "")",
+                            "gasRate": @(item.GasRate?.ToString() ?? "null"),
+                            "downTimeMin": @(item.Downtime?.ToString() ?? "null"),
+                            "downTimeHrs": @(item.Downtime.HasValue ? Math.Round(item.Downtime.Value / 60.0, 2).ToString() : "null"),
+                            "comments": "@(item.Comments?.Replace("\"", "\\\"") ?? "")"
+                        },
             </text>
         }
         ];
@@ -146,14 +213,206 @@
         // Get the anti-forgery token
         const antiForgeryToken = $('input:hidden[name="__RequestVerificationToken"]').val();
 
-        // Log data for debugging
-        console.log("Data loaded:", compressorData);
+        // Function to check if this is a fresh page load (not navigation)
+        function isFreshPageLoad() {
+            // Check if there's a performance navigation entry
+            if (performance && performance.navigation) {
+                return performance.navigation.type === performance.navigation.TYPE_RELOAD;
+            }
+            // Fallback check
+            return !window.history.state;
+        }
 
-        // Set up pagination variables
-        let currentPage = @Model.CurrentPage;
-        let totalPages = @Model.TotalPages;
-        let totalRecords = @Model.TotalRecords;
-        const pageSize = @Model.PageSize;
+        // Function to clear all filters and URL parameters
+        function clearAllFiltersOnRefresh() {
+            // Clear URL parameters
+            const url = new URL(window.location.href);
+            url.searchParams.delete('fromDate');
+            url.searchParams.delete('toDate');
+            url.searchParams.delete('selectedCompressors');
+            url.searchParams.set('CurrentPage', '1');
+
+            // Replace the current URL without the filter parameters
+            window.history.replaceState(null, '', url);
+
+            // Clear local variables
+            currentFromDate = null;
+            currentToDate = null;
+            selectedCompressors = [];
+            currentPage = 1;
+
+            // Clear UI elements
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            $("#listBox2 option").appendTo("#listBox1");
+
+            // Update status displays
+            updateFilterStatus();
+            updateCompressorFilterStatus();
+        }
+
+        // Function to restore compressor selection from URL (only for navigation, not refresh)
+        function restoreCompressorSelectionFromURL() {
+            // Don't restore if this is a fresh page load/refresh
+            if (isFreshPageLoad()) {
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlSelectedCompressors = urlParams.getAll('selectedCompressors');
+
+            if (urlSelectedCompressors.length > 0) {
+                // Clear existing selections
+                $("#listBox2").empty();
+                selectedCompressors = [];
+
+                // Move selected compressors from available to selected pool
+                urlSelectedCompressors.forEach(compressorName => {
+                    // Find and move the option from listBox1 to listBox2
+                    const option = $(`#listBox1 option[value="${compressorName}"]`);
+                    if (option.length > 0) {
+                        option.appendTo("#listBox2");
+                    } else {
+                        // If option doesn't exist in listBox1, create it in listBox2
+                        $("<option>").val(compressorName).text(compressorName).appendTo("#listBox2");
+                    }
+                    selectedCompressors.push(compressorName);
+                });
+
+                updateCompressorFilterStatus();
+                console.log("Restored compressor selection from URL:", selectedCompressors);
+            }
+        }
+
+        // Function to update the selectedCompressors array
+        function updateSelectedCompressors() {
+            selectedCompressors = [];
+            $("#listBox2 option").each(function() {
+                selectedCompressors.push($(this).val());
+            });
+
+            console.log("Selected compressors:", selectedCompressors);
+
+            // Update filter status
+            updateCompressorFilterStatus();
+
+            // Update URL to maintain state (only during navigation, not refresh)
+            if (!isFreshPageLoad()) {
+                updateURLWithCurrentState();
+            }
+        }
+
+        // Function to show current compressor filter status
+        function updateCompressorFilterStatus() {
+            let statusText = '';
+            if (selectedCompressors.length > 0) {
+                statusText = `Filtered by: ${selectedCompressors.join(', ')}`;
+            } else {
+                statusText = 'All compressors shown';
+            }
+
+            // Update or create a status element
+            let statusElement = document.getElementById('compressorFilterStatus');
+            if (!statusElement) {
+                statusElement = document.createElement('div');
+                statusElement.id = 'compressorFilterStatus';
+                statusElement.className = 'filter-status';
+                statusElement.style.marginTop = '10px';
+                statusElement.style.fontWeight = 'bold';
+                statusElement.style.color = '#28a745';
+                document.querySelector('.date-filter-panel').appendChild(statusElement);
+            }
+            statusElement.textContent = statusText;
+        }
+
+        // Function to apply compressor filter
+        function applyCompressorFilter() {
+            showStatus('Applying compressor filter...', 'success');
+            currentPage = 1; // Reset to first page when filtering
+            loadPageData(currentPage);
+        }
+
+        // Function to update URL with current state
+        function updateURLWithCurrentState() {
+            if (history.replaceState) {
+                const newUrl = new URL(window.location.href);
+
+                // Update current page
+                newUrl.searchParams.set('CurrentPage', currentPage);
+
+                // Update date filters
+                if (currentFromDate) {
+                    newUrl.searchParams.set('fromDate', currentFromDate);
+                } else {
+                    newUrl.searchParams.delete('fromDate');
+                }
+
+                if (currentToDate) {
+                    newUrl.searchParams.set('toDate', currentToDate);
+                } else {
+                    newUrl.searchParams.delete('toDate');
+                }
+
+                // Update selected compressors
+                newUrl.searchParams.delete('selectedCompressors'); // Clear existing
+                selectedCompressors.forEach(compressor => {
+                    newUrl.searchParams.append('selectedCompressors', compressor);
+                });
+
+                window.history.replaceState({
+                    page: currentPage,
+                    fromDate: currentFromDate,
+                    toDate: currentToDate,
+                    selectedCompressors: [...selectedCompressors]
+                }, '', newUrl);
+            }
+        }
+
+        // Initialize from URL parameters (only for navigation, not refresh)
+        function initializeFromURLParameters() {
+            // Don't initialize from URL if this is a fresh page load/refresh
+            if (isFreshPageLoad()) {
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlFromDate = urlParams.get('fromDate');
+            const urlToDate = urlParams.get('toDate');
+
+            if (urlFromDate || urlToDate) {
+                currentFromDate = urlFromDate;
+                currentToDate = urlToDate;
+                document.getElementById('dateFrom').value = currentFromDate || '';
+                document.getElementById('dateTo').value = currentToDate || '';
+                updateFilterStatus();
+            }
+        }
+
+        // Document ready function
+        $(document).ready(function () {
+            // Check if this is a fresh page load and clear filters if so
+            if (isFreshPageLoad()) {
+                clearAllFiltersOnRefresh();
+            } else {
+                // Only restore from URL if not a fresh page load
+                initializeFromURLParameters();
+                restoreCompressorSelectionFromURL();
+            }
+
+            // Enhanced move right functionality with filtering
+            $("#btnMoveRight").click(function () {
+                $("#listBox1 option:selected").appendTo("#listBox2");
+                updateSelectedCompressors();
+                applyCompressorFilter();
+            });
+
+            // Enhanced move left functionality with filtering
+            $("#btnMoveLeft").click(function () {
+                $("#listBox2 option:selected").appendTo("#listBox1");
+                updateSelectedCompressors();
+                applyCompressorFilter();
+            });
+        });
 
         // Initialize HandsOnTable
         const container = document.getElementById('handsontable-grid');
@@ -166,7 +425,7 @@
                     data: "compressor",
                     type: 'dropdown',
                     source: compressorList,
-                    strict: false,  // Allow custom input
+                    strict: false,
                     width: 170
                 },
                 { data: "gasRate", type: "numeric", width: 150, numericFormat: { pattern: '0,0' } },
@@ -179,7 +438,7 @@
                 columns: [6]  // Hide ID column
             },
             rowHeaders: true,
-            height: 'auto',
+            height: '400',
             width: '100%',
             stretchH: 'all',
             manualColumnResize: true,
@@ -203,6 +462,61 @@
                 updateSummaryTotals();
             }
         });
+
+        // Date Filter Functions
+        function updateFilterStatus() {
+            const statusElement = document.getElementById('filterStatus');
+            if (currentFromDate || currentToDate) {
+                let statusText = 'Date Filter: ';
+                if (currentFromDate && currentToDate) {
+                    statusText += `${currentFromDate} to ${currentToDate}`;
+                } else if (currentFromDate) {
+                    statusText += `From ${currentFromDate}`;
+                } else if (currentToDate) {
+                    statusText += `To ${currentToDate}`;
+                }
+                statusElement.textContent = statusText;
+                statusElement.style.color = '#28a745';
+            } else {
+                statusElement.textContent = 'No date filter applied';
+                statusElement.style.color = '#6c757d';
+            }
+        }
+
+        // Date filter event listeners
+        document.getElementById('applyFilter').addEventListener('click', function() {
+            const fromDateInput = document.getElementById('dateFrom');
+            const toDateInput = document.getElementById('dateTo');
+
+            currentFromDate = fromDateInput.value || null;
+            currentToDate = toDateInput.value || null;
+
+            // Validate date range
+            if (currentFromDate && currentToDate && currentFromDate > currentToDate) {
+                showStatus('Error: From date cannot be later than To date', 'error');
+                return;
+            }
+
+            updateFilterStatus();
+            currentPage = 1; // Reset to first page when filtering
+            updateURLWithCurrentState();
+            loadPageData(currentPage);
+        });
+
+        document.getElementById('clearFilter').addEventListener('click', function() {
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            currentFromDate = null;
+            currentToDate = null;
+            updateFilterStatus();
+            currentPage = 1; // Reset to first page when clearing filter
+            updateURLWithCurrentState();
+            loadPageData(currentPage);
+        });
+
+        // Initialize filter status
+        updateFilterStatus();
+        updateCompressorFilterStatus();
 
         // Function to calculate and update summary totals
         function updateSummaryTotals() {
@@ -234,16 +548,13 @@
 
         // Add new row button functionality
         document.getElementById('addRow').addEventListener('click', function() {
-            // Get current date in MM/DD/YYYY format
             const today = new Date();
             const formattedDate = (today.getMonth() + 1) + '/' + today.getDate() + '/' + today.getFullYear();
 
-            // Show status message
             showStatus('Adding new row...', 'success');
 
-            // Add new row to the data source with proper defaults
             compressorData.push({
-                id: 0,  // This will be auto-generated by the database
+                id: 0,
                 date: formattedDate,
                 compressor: "",
                 gasRate: null,
@@ -252,39 +563,201 @@
                 comments: ""
             });
 
-            // Refresh the table with the new data
             hot.loadData(compressorData);
-
-            // Scroll to the bottom
             hot.scrollViewportTo(compressorData.length - 1);
-
-            // Select the new row's first cell
             hot.selectCell(compressorData.length - 1, 0);
 
             showStatus('New row added. Edit the row and click "Save Changes" when done.', 'success');
-
-            // Update totals after adding a new row
             updateSummaryTotals();
         });
 
-                document.getElementById('saveChanges').addEventListener('click', function() {
+        // CSV Export Functionality
+        document.getElementById('exportCSV').addEventListener('click', function() {
+            try {
+                showStatus('Fetching all records for export...', 'success');
+
+                // Build URL with proper parameter handling
+                let url = `/CompressorInfo?handler=AllData`;
+                const params = new URLSearchParams();
+
+                // Add date filters
+                if (currentFromDate) {
+                    params.append('fromDate', currentFromDate);
+                }
+                if (currentToDate) {
+                    params.append('toDate', currentToDate);
+                }
+
+                // Add compressor filter parameters
+                if (selectedCompressors.length > 0) {
+                    selectedCompressors.forEach(compressor => {
+                        params.append('selectedCompressors', compressor);
+                    });
+                }
+
+                // Append parameters to URL if any exist
+                if (params.toString()) {
+                    url += '&' + params.toString();
+                }
+
+                console.log('CSV Export URL:', url);
+                console.log('Selected compressors for export:', selectedCompressors);
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "RequestVerificationToken": antiForgeryToken
+                    },
+                    beforeSend: function(xhr) {
+                        console.log('Sending CSV export request...');
+                    },
+                    success: function(result) {
+                        console.log('CSV export response:', result);
+
+                        if (result && result.success) {
+                            showStatus('Generating CSV file...', 'success');
+
+                            // Check if we have data
+                            if (!result.data || !Array.isArray(result.data)) {
+                                showStatus('No data returned from server', 'error');
+                                return;
+                            }
+
+                            const allData = result.data.map(item => {
+                                return {
+                                    id: item.id,
+                                    date: item.compressDate ? new Date(item.compressDate).toLocaleDateString('en-US') : "",
+                                    compressor: item.compressor || "",
+                                    gasRate: item.gasRate,
+                                    downTimeMin: item.downtime,
+                                    downTimeHrs: item.downtime ? Math.round(item.downtime / 60.0 * 100) / 100 : null,
+                                    comments: item.comments || ""
+                                };
+                            });
+
+                            const headers = [
+                                "Date", "Compressor", "Gas Rate (m³/d)", "Down Time (min)",
+                                "Down Time (hrs)", "Comments"
+                            ];
+
+                            let csvContent = headers.join(',') + '\n';
+
+                            allData.forEach(function(row) {
+                                const csvRow = [
+                                    escapeCsvValue(row.date || ''),
+                                    escapeCsvValue(row.compressor),
+                                    escapeCsvValue(row.gasRate),
+                                    escapeCsvValue(row.downTimeMin),
+                                    escapeCsvValue(row.downTimeHrs),
+                                    escapeCsvValue(row.comments)
+                                ];
+
+                                csvContent += csvRow.join(',') + '\n';
+                            });
+
+                            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                            const downloadUrl = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+
+                            let filename = 'compressor_data';
+                            if (currentFromDate || currentToDate || selectedCompressors.length > 0) {
+                                filename += '_filtered';
+                                if (currentFromDate) {
+                                    filename += '_from_' + currentFromDate.replace(/-/g, '');
+                                }
+                                if (currentToDate) {
+                                    filename += '_to_' + currentToDate.replace(/-/g, '');
+                                }
+                                if (selectedCompressors.length > 0) {
+                                    filename += '_compressors_' + selectedCompressors.length;
+                                }
+                            }
+                            filename += '.csv';
+
+                            link.setAttribute('href', downloadUrl);
+                            link.setAttribute('download', filename);
+                            link.style.visibility = 'hidden';
+
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+
+                            showStatus(`CSV file generated successfully! Exported ${allData.length} records.`, 'success');
+                        } else {
+                            const errorMessage = result && result.message ? result.message : 'Unknown error occurred';
+                            console.error('Server returned error:', errorMessage);
+                            showStatus('Error fetching data for export: ' + errorMessage, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error Details:');
+                        console.error('Status:', status);
+                        console.error('Error:', error);
+                        console.error('Response Status:', xhr.status);
+                        console.error('Response Text:', xhr.responseText);
+                        console.error('Ready State:', xhr.readyState);
+
+                        let errorMessage = 'Error fetching data for export: ';
+
+                        if (xhr.status === 400) {
+                            errorMessage += 'Bad Request - Check server-side parameter handling';
+                        } else if (xhr.status === 500) {
+                            errorMessage += 'Server Error - Check server logs';
+                        } else if (xhr.status === 0) {
+                            errorMessage += 'Network Error - Check connection';
+                        } else {
+                            errorMessage += `HTTP ${xhr.status} - ${error}`;
+                        }
+
+                        showStatus(errorMessage, 'error');
+
+                        // Try to parse error response
+                        try {
+                            const errorResponse = JSON.parse(xhr.responseText);
+                            if (errorResponse && errorResponse.message) {
+                                showStatus('Server Error: ' + errorResponse.message, 'error');
+                            }
+                        } catch (parseError) {
+                            console.error('Could not parse error response as JSON');
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error('JavaScript Error during CSV export:', e);
+                showStatus('Error during CSV export: ' + e.message, 'error');
+            }
+        });
+
+        // Helper function to properly escape CSV values
+        function escapeCsvValue(value) {
+            if (value === null || value === undefined) return '';
+
+            const str = String(value);
+
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                return '"' + str.replace(/"/g, '""') + '"';
+            }
+
+            return str;
+        }
+
+        // Save changes functionality
+        document.getElementById('saveChanges').addEventListener('click', function() {
             showStatus('Saving changes...', 'success');
 
             try {
-                // Get all data from the table
                 const dataToSave = [];
                 const sourceData = hot.getSourceData();
 
                 for (let i = 0; i < sourceData.length; i++) {
                     const row = sourceData[i];
 
-                    // Only include rows that have some data (not completely empty)
                     if (row.compressor || row.gasRate || row.downTimeMin || row.comments) {
-                        // Handle date parsing more safely
                         let dateValue = null;
                         if (row.date) {
                             try {
-                                // Try to parse the date - accept multiple formats
                                 const dateObj = new Date(row.date);
                                 if (!isNaN(dateObj.getTime())) {
                                     dateValue = dateObj.toISOString();
@@ -294,7 +767,6 @@
                             }
                         }
 
-                        // Convert numeric values properly
                         let gasRate = null;
                         if (row.gasRate !== null && row.gasRate !== "" && !isNaN(parseFloat(row.gasRate))) {
                             gasRate = parseInt(row.gasRate, 10);
@@ -305,7 +777,6 @@
                             downtime = parseInt(row.downTimeMin, 10);
                         }
 
-                        // Add the processed row
                         dataToSave.push({
                             ID: parseInt(row.id, 10) || 0,
                             CompressDate: dateValue,
@@ -317,20 +788,13 @@
                     }
                 }
 
-                // Log the data being sent for debugging
-                console.log("Data being sent to server:", JSON.stringify(dataToSave));
-
-                // Get the token
                 const token = $('input[name="__RequestVerificationToken"]').val();
-                console.log("Anti-forgery token:", token ? "Found" : "Not Found");
 
                 if (!token) {
                     showStatus('Error: Anti-forgery token not found', 'error');
-                    console.error("No anti-forgery token found. Form elements:", $('form').length);
                     return;
                 }
 
-                // Send data to server with improved error handling
                 $.ajax({
                     url: '/CompressorInfo?handler=UpdateData',
                     type: 'POST',
@@ -340,24 +804,16 @@
                         "RequestVerificationToken": token,
                         "X-Requested-With": "XMLHttpRequest"
                     },
-                    beforeSend: function(xhr) {
-                        console.log("Request about to be sent with token:", token.substring(0, 10) + "...");
-                    },
                     success: function(result) {
-                        console.log("Server response:", result);
                         if (result.success) {
                             showStatus('Data saved successfully!', 'success');
                             loadPageData(currentPage);
                         } else {
                             showStatus('Error: ' + result.message, 'error');
-                            console.error('Save error details:', result);
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error('Save error status:', status);
-                        console.error('Save error response:', xhr.responseText);
-                        console.error('Save error details:', xhr.responseJSON);
-                        console.error('Save error status code:', xhr.status);
+                        console.error('Save error:', error);
                         showStatus('Error saving data: ' + error, 'error');
                     }
                 });
@@ -374,10 +830,9 @@
             statusElement.className = type;
             statusElement.style.display = 'block';
 
-            // Auto-hide after 5 seconds
             setTimeout(function() {
                 statusElement.style.display = 'none';
-            }, 5000); // Increased from 1000ms to 5000ms to make messages more visible
+            }, 5000);
         }
 
         // Pagination functionality
@@ -385,33 +840,28 @@
             const pageButtonsContainer = document.getElementById('pageButtons');
             pageButtonsContainer.innerHTML = '';
 
-            // Calculate which page buttons to show
             let startPage = Math.max(1, currentPage - 2);
             let endPage = Math.min(totalPages, startPage + 4);
 
-            // Adjust start page if we're at the end
             if (endPage - startPage < 4) {
                 startPage = Math.max(1, endPage - 4);
             }
 
-            // Generate page buttons
             for (let i = startPage; i <= endPage; i++) {
                 const button = document.createElement('button');
                 button.textContent = i;
                 button.classList.toggle('active', i === currentPage);
                 button.addEventListener('click', function(e) {
-                    e.preventDefault(); // Prevent default button behavior
+                    e.preventDefault();
                     loadPageData(i);
                 });
                 pageButtonsContainer.appendChild(button);
             }
 
-            // Update page info
             document.getElementById('currentPage').textContent = currentPage;
             document.getElementById('totalPages').textContent = totalPages;
             document.getElementById('totalRecords').textContent = totalRecords;
 
-            // Enable/disable navigation buttons
             document.getElementById('firstPage').disabled = currentPage === 1;
             document.getElementById('prevPage').disabled = currentPage === 1;
             document.getElementById('nextPage').disabled = currentPage === totalPages || totalPages === 0;
@@ -421,29 +871,33 @@
         // Load page data from server
         function loadPageData(page) {
             showStatus('Loading data...', 'success');
-                const url = `/CompressorInfo?handler=PagedData&page=${page}`;
-                console.log('Requesting URL:', url);
-                 console.log('About to send request for page:', page);
 
-            // Store the requested page
-            const requestedPage = page;
+            let url = `/CompressorInfo?handler=PagedData&page=${page}`;
+            if (currentFromDate) url += `&fromDate=${currentFromDate}`;
+            if (currentToDate) url += `&toDate=${currentToDate}`;
+
+            // Add compressor filter parameters
+            if (selectedCompressors.length > 0) {
+                selectedCompressors.forEach(compressor => {
+                    url += `&selectedCompressors=${encodeURIComponent(compressor)}`;
+                });
+            }
+
+            console.log('Requesting URL:', url);
 
             $.ajax({
-                url:  `/CompressorInfo?handler=PagedData&page=${page}`,
+                url: url,
                 type: 'GET',
-                data: { page: page },
                 headers: {
                     "X-Requested-With": "XMLHttpRequest",
-                    "RequestVerificationToken": antiForgeryToken // Add this line
+                    "RequestVerificationToken": antiForgeryToken
                 },
                 success: function(result) {
                     if (result.success) {
-                        // Update pagination variables
                         currentPage = result.pagination.currentPage;
                         totalPages = result.pagination.totalPages;
                         totalRecords = result.pagination.totalRecords;
 
-                        // Transform data for HandsOnTable
                         const tableData = result.data.map(item => {
                             return {
                                 id: item.id,
@@ -456,22 +910,40 @@
                             };
                         });
 
-                        // Load data into table
                         hot.loadData(tableData);
-
-                        // Update pagination UI
                         renderPagination();
-
-                        // Update summary totals
                         updateSummaryTotals();
-
                         showStatus('Data loaded successfully!', 'success');
 
-                        // Update URL without page reload to maintain state
-                        if (history.pushState) {
+                        // Update URL without page reload to maintain state (only if not a fresh page load)
+                        if (!isFreshPageLoad() && history.pushState) {
                             const newUrl = new URL(window.location.href);
                             newUrl.searchParams.set('CurrentPage', currentPage);
-                            window.history.pushState({ page: currentPage }, '', newUrl);
+
+                            if (currentFromDate) {
+                                newUrl.searchParams.set('fromDate', currentFromDate);
+                            } else {
+                                newUrl.searchParams.delete('fromDate');
+                            }
+
+                            if (currentToDate) {
+                                newUrl.searchParams.set('toDate', currentToDate);
+                            } else {
+                                newUrl.searchParams.delete('toDate');
+                            }
+
+                            // Add selected compressors to URL
+                            newUrl.searchParams.delete('selectedCompressors');
+                            selectedCompressors.forEach(compressor => {
+                                newUrl.searchParams.append('selectedCompressors', compressor);
+                            });
+
+                            window.history.pushState({
+                                page: currentPage,
+                                fromDate: currentFromDate,
+                                toDate: currentToDate,
+                                selectedCompressors: [...selectedCompressors]
+                            }, '', newUrl);
                         }
                     } else {
                         showStatus('Error loading data: ' + (result.message || 'Unknown error'), 'error');
@@ -487,8 +959,40 @@
 
         // Handle browser back/forward buttons
         window.onpopstate = function(event) {
-            if (event.state && event.state.page) {
-                loadPageData(event.state.page);
+            if (event.state) {
+                if (event.state.page) {
+                    currentPage = event.state.page;
+                }
+
+                // Restore date filters
+                if (event.state.fromDate !== undefined) {
+                    currentFromDate = event.state.fromDate;
+                    document.getElementById('dateFrom').value = currentFromDate || '';
+                }
+                if (event.state.toDate !== undefined) {
+                    currentToDate = event.state.toDate;
+                    document.getElementById('dateTo').value = currentToDate || '';
+                }
+
+                // Restore compressor filters
+                if (event.state.selectedCompressors) {
+                    // Clear current selection
+                    $("#listBox2 option").appendTo("#listBox1");
+                    selectedCompressors = [];
+
+                    // Restore selection
+                    event.state.selectedCompressors.forEach(compressorName => {
+                        const option = $(`#listBox1 option[value="${compressorName}"]`);
+                        if (option.length > 0) {
+                            option.appendTo("#listBox2");
+                            selectedCompressors.push(compressorName);
+                        }
+                    });
+                }
+
+                updateFilterStatus();
+                updateCompressorFilterStatus();
+                loadPageData(currentPage);
             }
         };
 
@@ -515,6 +1019,9 @@
 
         // Initialize pagination
         renderPagination();
+
+        // Log data for debugging
+        console.log("Data loaded:", compressorData);
     </script>
 
     @Html.AntiForgeryToken()

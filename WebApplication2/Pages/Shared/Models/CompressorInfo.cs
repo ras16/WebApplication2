@@ -11,7 +11,7 @@ namespace WebApplication2.Pages.Shared.Models
         public int ID { get; set; } 
         public DateTime? CompressDate { get; set; }
         public string? Compressor { get; set; }
-        public int? GasRate { get; set; }
+        public double? GasRate { get; set; }
         public int? Downtime { get; set; }
         public string? Comments { get; set; }
     }

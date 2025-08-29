@@ -9,7 +9,7 @@ namespace WebApplication2.Pages.Shared
     {
         private readonly ApplicationDbContext _db;
 
-        public List<FormData> FormDataList { get; set; } = new List<FormData>();
+        public List<DailyFieldProduction> FormDataList { get; set; } = new List<DailyFieldProduction>();
 
         public Results(ApplicationDbContext db)
         {
@@ -19,7 +19,7 @@ namespace WebApplication2.Pages.Shared
         public async Task OnGetAsync()
         {
 
-            FormDataList = await _db.FormDataEntries.ToListAsync();
+            FormDataList = await _db.DailyFieldProductionEntries.ToListAsync();
         
         }
     }

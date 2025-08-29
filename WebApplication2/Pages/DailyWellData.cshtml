@@ -1,0 +1,1416 @@
+﻿@page
+@model WebApplication2.Pages.DailyWellDataModel
+@{
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="~/css/DailyWellData.css" />
+
+    <title>Daily Well Data</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="container">
+        <script>
+            $(document).ready(function () {
+                // Move selected items to the right box
+                $("#btnMoveRight").click(function () {
+                    $("#listBox1 option:selected").appendTo("#listBox2");
+                });
+
+                // Move selected items back to the left box
+                $("#btnMoveLeft").click(function () {
+                    $("#listBox2 option:selected").appendTo("#listBox1");
+                });
+            });
+        </script>
+
+        <!-- NEW: Summary Statistics Section -->
+        <section class="summary-section">
+            <div class="section-header">
+                <h2><i class="fas fa-chart-line"></i> Summary Statistics</h2>
+                <div class="period-selector">
+                    <label for="periodSelect">Compare to:</label>
+                    <select id="periodSelect" class="period-select">
+                        <option value="week">Last Week</option>
+                        <option value="month" selected>Last Month</option>
+                        <option value="quarter">Last Quarter</option>
+                        <option value="year">Last Year</option>
+                        <option value="30days">Last 30 Days</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Keep your existing summary cards here -->
+            <div class="summary-grid">
+                <!-- Total Wells Card -->
+                <div class="summary-card primary" id="totalWellsCard">
+                    <div class="card-icon">
+                        <i class="fas fa-oil-well"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Total Wells</h3>
+                        <div class="value" id="totalWellsValue">--</div>
+                        <div class="change-indicator" id="totalWellsChange">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>-- from last period</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Production Card -->
+                <div class="summary-card success" id="dailyProductionCard">
+                    <div class="card-icon">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Daily Production</h3>
+                        <div class="value" id="dailyProductionValue">--</div>
+                        <div class="unit">m³/d</div>
+                        <div class="change-indicator" id="dailyProductionChange">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>-- from last period</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Average THP Card -->
+                <div class="summary-card accent" id="averageTHPCard">
+                    <div class="card-icon">
+                        <i class="fas fa-gauge-high"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Average THP</h3>
+                        <div class="value" id="averageTHPValue">--</div>
+                        <div class="unit">barg</div>
+                        <div class="change-indicator" id="averageTHPChange">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>-- from last period</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Downtime Card -->
+                <div class="summary-card warning" id="downtimeCard">
+                    <div class="card-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Total Downtime</h3>
+                        <div class="value" id="downtimeValue">--</div>
+                        <div class="unit">hours</div>
+                        <div class="change-indicator" id="downtimeChange">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>-- improvement</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXISTING: Data Management Section -->
+        <section class="data-section">
+            <div class="section-header">
+                <h2><i class="fas fa-database"></i> Data Management</h2>
+            </div>
+
+            <!-- Filter Panel -->
+            <div class="date-filter-panel">
+                <div class="date-filter-group">
+                    <label for="dateFrom">From:</label>
+                    <input type="date" id="dateFrom" />
+                </div>
+                <div class="date-filter-group">
+                    <label for="dateTo">To:</label>
+                    <input type="date" id="dateTo" />
+                </div>
+                <div class="filter-buttons">
+                    <button id="applyFilter" class="btn-filter">Apply Filter</button>
+                    <button id="clearFilter" class="btn-clear">Clear Filter</button>
+                </div>
+                <div class="filter-status" id="filterStatus"></div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="control-group">
+                    <button id="saveChanges" class="btn success">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                    <button id="addRow" class="btn primary">
+                        <i class="fas fa-plus"></i>
+                        Add New Row
+                    </button>
+                    <button id="exportCSV" class="btn accent">
+                        <i class="fas fa-download"></i>
+                        Export CSV
+                    </button>
+                </div>
+                <div id="statusMessage" class="status-message"></div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-container">
+                <div id="handsontable-grid" class="data-grid"></div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-container">
+                <div class="pagination-controls">
+                    <button id="firstPage" class="pagination-btn" title="First Page">
+                        <i class="fas fa-angle-double-left"></i>
+                    </button>
+                    <button id="prevPage" class="pagination-btn" title="Previous Page">
+                        <i class="fas fa-angle-left"></i>
+                    </button>
+                    <div id="pageButtons" class="page-numbers"></div>
+                    <button id="nextPage" class="pagination-btn" title="Next Page">
+                        <i class="fas fa-angle-right"></i>
+                    </button>
+                    <button id="lastPage" class="pagination-btn" title="Last Page">
+                        <i class="fas fa-angle-double-right"></i>
+                    </button>
+                </div>
+                <div class="pagination-info">
+                    Page <span id="currentPage">1</span> of <span id="totalPages">1</span> |
+                    Total Records: <span id="totalRecords">0</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+
+    <script>
+        // console.clear();
+        console.log("Script initialized");
+
+        // Get the anti-forgery token
+        const antiForgeryToken = $('input:hidden[name="__RequestVerificationToken"]').val();
+
+        // Initialize HandsOnTable
+        const container = document.getElementById('handsontable-grid');
+
+        // Set up pagination variables and date filter
+        let currentPage = @Model.CurrentPage;
+        let totalPages = @Model.TotalPages;
+        let totalRecords = @Model.TotalRecords;
+        const pageSize = @Model.PageSize;
+        let currentDateFilter = {
+            dateFrom: null,
+            dateTo: null
+        };
+        let currentPeriod = 'month';
+
+        // Global variable to store current summary data
+        let currentSummaryData = null;
+        let summaryRefreshInterval = null;
+
+        // Define WellID options for dropdown FIRST (moved before dailyWellData)
+        const wellIdOptions = [
+        @foreach (var well in Model.WellsList)
+        {
+            <text>
+                                        {
+                                            id: @well.WellID,
+                                            name: "@(well.WellID + " - " + well.WellName)"
+                                        },
+            </text>
+        }
+        ];
+
+        const dailyWellData = [
+        @foreach (var item in Model.DailyWellDataList)
+        {
+            <text>
+                                        {
+                                            "ID": @item.ID,
+                                            "Date": "@(item.Date?.ToString("MM/dd/yyyy") ?? "")",
+                                            "WellID": @(item.WellID),
+                                            "WellType": "@(item.WellType ?? "")",
+                                            "Horizon": "@(item.Horizon ?? "")",
+                                            "Flow": "@(item.Flow ?? "")",
+                                            "Tbg_Choke_mm": @(item.Tbg_Choke_mm?.ToString("F2") ?? "null"),
+                                            "Csg_Choke_mm": @(item.Csg_Choke_mm?.ToString("F2") ?? "null"),
+                                            "THP_barg": @(item.THP_barg?.ToString("F1") ?? "null"),
+                                            "THT_C": @(item.THT_C?.ToString("F1") ?? "null"),
+                                            "CHP_barg": @(item.CHP_barg?.ToString("F1") ?? "null"),
+                                            "Flowing_To": "@(item.Flowing_To ?? "")",
+                                            "Sep_press_bar": @(item.Sep_press_bar?.ToString("F1") ?? "null"),
+                                            "Sep_temp_C": @(item.Sep_temp_C?.ToString("F1") ?? "null"),
+                                            "Liq_rate_m3d": @(item.Liq_rate_m3d?.ToString("F1") ?? "null"),
+                                            "BSW_pcnt": @(item.BSW_pcnt?.ToString("F2") ?? "null"),
+                                            "Fl_Line_Pres_barg": @(item.Fl_Line_Pres_barg?.ToString("F1") ?? "null"),
+                                            "Liquid_lvl_csg_m": @(item.Liquid_lvl_csg_m?.ToString() ?? "null"),
+                                            "Pumping_Speed_spm": @(item.Pumping_Speed_spm?.ToString("F2") ?? "null"),
+                                            "Stroke_Length_m": @(item.Stroke_Length_m?.ToString("F2") ?? "null"),
+                                            "Pump_Depth_m": @(item.Pump_Depth_m?.ToString() ?? "null"),
+                                            "Vol_Inj_m3": @(item.Vol_Inj_m3?.ToString("F2") ?? "null"),
+                                            "Hrs_Inj_hrs": @(item.Hrs_Inj_hrs?.ToString("F2") ?? "null"),
+                                            "Gas_rate_mm_m3d": @(item.Gas_rate_mm_m3d?.ToString("F3") ?? "null"),
+                                            "Specific_gravity_oil": @(item.Specific_gravity_oil?.ToString("F3") ?? "null"),
+                                            "Specific_gravity_gas": @(item.Specific_gravity_gas?.ToString("F3") ?? "null"),
+                                            "HOWC": "@(item.HOWC ?? "")",
+                                            "GOR": @(item.GOR?.ToString("F2") ?? "null"),
+                                            "Field1": "@(item.Field1 ?? "")",
+                                            "DownTime": @(item.DownTime?.ToString() ?? "null"),
+                                            "Remarks": "@(item.Remarks ?? "")"
+                                        }@(Model.DailyWellDataList.Last() == item ? "" : ",")
+            </text>
+        }
+        ];
+
+        // Transform initial data to show well names instead of IDs
+        const transformedDailyWellData = dailyWellData.map(item => {
+            const matchingWell = wellIdOptions.find(well => well.id == item.WellID);
+            return {
+                ...item,
+                WellID: matchingWell ? matchingWell.name : item.WellID
+            };
+        });
+
+        // Log data for debugging
+        console.log("Data loaded:", transformedDailyWellData);
+
+        const columns = [
+          { data: 'ID', type: 'numeric', allowEmpty: false },
+          { data: 'Date', type: 'date', dateFormat: 'MM/DD/YYYY', correctFormat: true, allowEmpty: true },
+          {
+            data: "WellID",
+            type: 'dropdown',
+            source: wellIdOptions.map(well => well.name),
+            strict: true,
+            width: 200,
+            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+                // Find the matching well object
+                const matchingWell = wellIdOptions.find(well =>
+                    well.name === value || well.id.toString() === value
+                );
+
+                // Set the cell value to the full well name/ID
+                td.textContent = matchingWell ? matchingWell.name : value;
+            }
+          },
+          { data: 'WellType', type: 'text', allowEmpty: true },
+          { data: 'Horizon', type: 'text', allowEmpty: true },
+          { data: 'Flow', type: 'text', allowEmpty: true },
+          { data: 'Tbg_Choke_mm', type: 'numeric', numericFormat: { pattern: '0.00' }, allowEmpty: true },
+          { data: 'Csg_Choke_mm', type: 'numeric', numericFormat: { pattern: '0.00' }, allowEmpty: true },
+          { data: 'THP_barg', type: 'numeric', numericFormat: { pattern: '0.0' }, allowEmpty: true },
+          { data: 'THT_C', type: 'numeric', numericFormat: { pattern: '0.0' }, allowEmpty: true },
+          { data: 'CHP_barg', type: 'numeric', numericFormat: { pattern: '0.0' }, allowEmpty: true },
+          { data: 'Flowing_To', type: 'text', allowEmpty: true },
+          { data: 'Sep_press_bar', type: 'numeric', numericFormat: { pattern: '0.0' }, allowEmpty: true },
+          { data: 'Sep_temp_C', type: 'numeric', numericFormat: { pattern: '0.0' }, allowEmpty: true },
+          { data: 'Liq_rate_m3d', type: 'numeric', numericFormat: { pattern: '0.0' }, allowEmpty: true },
+          { data: 'BSW_pcnt', type: 'numeric', numericFormat: { pattern: '0.00' }, allowEmpty: true },
+          { data: 'Fl_Line_Pres_barg', type: 'numeric', numericFormat: { pattern: '0.0' }, allowEmpty: true },
+          { data: 'Liquid_lvl_csg_m', type: 'numeric', allowEmpty: true },
+          { data: 'Pumping_Speed_spm', type: 'numeric', numericFormat: { pattern: '0.00' }, allowEmpty: true },
+          { data: 'Stroke_Length_m', type: 'numeric', numericFormat: { pattern: '0.00' }, allowEmpty: true },
+          { data: 'Pump_Depth_m', type: 'numeric', allowEmpty: true },
+          { data: 'Vol_Inj_m3', type: 'numeric', numericFormat: { pattern: '0.00' }, allowEmpty: true },
+          { data: 'Hrs_Inj_hrs', type: 'numeric', numericFormat: { pattern: '0.00' }, allowEmpty: true },
+          { data: 'Gas_rate_mm_m3d', type: 'numeric', numericFormat: { pattern: '0.000' }, allowEmpty: true },
+          { data: 'Specific_gravity_oil', type: 'numeric', numericFormat: { pattern: '0.000' }, allowEmpty: true },
+          { data: 'Specific_gravity_gas', type: 'numeric', numericFormat: { pattern: '0.000' }, allowEmpty: true },
+          { data: 'HOWC', type: 'text', allowEmpty: true },
+          { data: 'GOR', type: 'numeric', numericFormat: { pattern: '0.00' }, allowEmpty: true },
+          { data: 'Field1', type: 'text', allowEmpty: true },
+          { data: 'DownTime', type: 'numeric', allowEmpty: true },
+          { data: 'Remarks', type: 'text', allowEmpty: true },
+        ];
+
+        let hot = new Handsontable(container, {
+            data: transformedDailyWellData, // Use transformed data
+            colHeaders: [
+                "ID",
+                "Date",
+                "Well ID",
+                "Well Type",
+                "Horizon",
+                "Flow",
+                "Tbg Choke mm",
+                "Csg Choke mm",
+                "THP barg",
+                "THT C",
+                "CHP barg",
+                "Flowing To",
+                "Sep press bar",
+                "Sep temp C",
+                "Liq rate m3d",
+                "BSW pcnt",
+                "Fl Line Pres barg",
+                "Liquid lvl csg m",
+                "Pumping Speed spm",
+                "Stroke Length m",
+                "Pump Depth m",
+                "Vol Inj m3",
+                "Hrs Inj hrs",
+                "Gas rate mm m3d",
+                "Specific gravity oil",
+                "Specific gravity gas",
+                "HOWC",
+                "GOR",
+                "Field1",
+                "DownTime",
+                "Remarks",
+            ],
+            columns: columns,
+            hiddenColumns: {
+                columns: [0]  // Hide ID column
+            },
+            rowHeaders: true,
+            height: '400',
+            width: '100%',
+            stretchH: 'all',
+            manualColumnResize: true,
+            manualRowResize: true,
+            contextMenu: true,
+            licenseKey: 'non-commercial-and-evaluation',
+            afterChange: function(changes, source) {
+                if (!changes || source === 'loadData') return;
+                            // Handle wellId dropdown changes
+                if (changes.some(change => change[1] === 'WellID')) {
+                    changes.forEach(change => {
+                        const [row, prop, oldValue, newValue] = change;
+                        if (prop === 'WellID') {
+                            const matchingWell = wellIdOptions.find(well => well.name === newValue);
+                            if (matchingWell) {
+                                hot.setDataAtRowProp(row, 'WellID', matchingWell.id);
+                            }
+                        }
+                    });
+                }
+                changes.forEach(([row, prop, oldValue, newValue]) => {
+                    if (prop === 'downTimeMin' && newValue !== null && newValue !== '') {
+                        const minutes = parseFloat(newValue);
+                        if (!isNaN(minutes)) {
+                            const hours = Math.round(minutes / 60.0 * 100) / 100;
+                            hot.setDataAtCell(row, 4, hours, 'calculated');
+                        }
+                    }
+                });
+            }
+        });
+
+        // SUMMARY STATISTICS FUNCTIONS
+
+        // Function to load and display summary statistics with enhanced error handling
+                async function loadSummaryStatistics() {
+            try {
+                showSummaryLoading(true);
+
+                // Build URL with current date filter and period
+                let url = '/DailyWellData?handler=SummaryStatistics';
+                url += `&period=${currentPeriod}`;
+
+                if (currentDateFilter.dateFrom) {
+                    url += `&dateFrom=${currentDateFilter.dateFrom}`;
+                }
+                if (currentDateFilter.dateTo) {
+                    url += `&dateTo=${currentDateFilter.dateTo}`;
+                }
+
+                console.log('Loading summary statistics from:', url);
+
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "RequestVerificationToken": antiForgeryToken
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentSummaryData = result.summary;
+                    updateSummaryDisplay(result.summary, result.periodDescription || 'from last period');
+                    showSummarySuccess();
+                    console.log('Summary statistics loaded successfully:', result.summary);
+                } else {
+                    console.error('Error loading summary statistics:', result.message);
+                    showSummaryError(result.message || 'Failed to load summary statistics');
+                }
+            } catch (error) {
+                console.error('Error fetching summary statistics:', error);
+                showSummaryError('Network error while loading statistics');
+            } finally {
+                showSummaryLoading(false);
+            }
+        }
+
+        // Function to update the summary display with animations
+        function updateSummaryDisplay(summary, periodDescription = 'from last period') {
+            // Update Total Wells with animation
+            animateValueChange('totalWellsValue', summary.totalWells);
+            updateChangeIndicator('totalWellsChange', summary.totalWellsChange, summary.totalWellsChangeType, periodDescription);
+
+            // Update Daily Production with animation
+            animateValueChange('dailyProductionValue', formatNumber(summary.dailyProduction));
+            updateChangeIndicator('dailyProductionChange', summary.dailyProductionChange, summary.dailyProductionChangeType, periodDescription);
+
+            // Update Average THP with animation
+            animateValueChange('averageTHPValue', formatNumber(summary.averageTHP));
+            updateChangeIndicator('averageTHPChange', summary.averageTHPChange, summary.averageTHPChangeType, periodDescription);
+
+            // Update Downtime with animation
+            animateValueChange('downtimeValue', formatNumber(summary.totalDowntime));
+            // For downtime, show as improvement when it decreases
+            const downtimeText = summary.downtimeChangeType === 'increase' ? 'improvement' :
+                                summary.downtimeChangeType === 'decrease' ? 'increase' : 'no change';
+            updateChangeIndicator('downtimeChange', Math.abs(summary.downtimeChange), summary.downtimeChangeType, downtimeText);
+        }
+                // Function to handle period selection change
+        function onPeriodChange() {
+            const periodSelect = document.getElementById('periodSelect');
+            currentPeriod = periodSelect.value;
+            console.log('Period changed to:', currentPeriod);
+
+            // Show loading message
+            showStatus(`Switching to ${getPeriodDisplayName(currentPeriod)} comparison...`, 'success');
+
+            // Reload summary statistics with new period
+            loadSummaryStatistics();
+        }
+                // Helper function to get display name for periods
+        function getPeriodDisplayName(period) {
+            const displayNames = {
+                'week': 'weekly',
+                'month': 'monthly',
+                'quarter': 'quarterly',
+                'year': 'yearly',
+                '30days': '30-day'
+            };
+            return displayNames[period] || 'period';
+        }
+
+        // Function to animate value changes
+        function animateValueChange(elementId, newValue) {
+            const element = document.getElementById(elementId);
+            const currentValue = element.textContent;
+
+            if (currentValue !== '--' && currentValue !== newValue) {
+                // Add animation class
+                element.parentElement.parentElement.classList.add('updated');
+
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                    element.parentElement.parentElement.classList.remove('updated');
+                }, 300);
+            }
+
+            // Update the value
+            element.textContent = newValue;
+        }
+
+        // Enhanced function to update change indicators with better styling
+        function updateChangeIndicator(elementId, changeValue, changeType, suffix) {
+            const element = document.getElementById(elementId);
+            const iconElement = element.querySelector('i');
+            const textElement = element.querySelector('span');
+
+            // Remove existing classes
+            element.classList.remove('positive', 'negative', 'neutral');
+
+            // Format the change value
+            const formattedChange = changeValue === 0 ? '0' : `${Math.abs(changeValue)}%`;
+
+            // Update text and styling based on change type
+            if (changeType === 'increase') {
+                element.classList.add('positive');
+                iconElement.className = 'fas fa-arrow-up';
+                textElement.textContent = `${formattedChange} ${suffix}`;
+            } else if (changeType === 'decrease') {
+                element.classList.add('negative');
+                iconElement.className = 'fas fa-arrow-down';
+                textElement.textContent = `${formattedChange} ${suffix}`;
+            } else {
+                element.classList.add('neutral');
+                iconElement.className = 'fas fa-minus';
+                textElement.textContent = `No change ${suffix}`;
+            }
+
+            // Add a subtle animation to the change indicator
+            element.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                element.style.transform = 'scale(1)';
+            }, 150);
+        }
+
+        // Function to show loading state for summary cards
+        function showSummaryLoading(isLoading) {
+            const cards = document.querySelectorAll('.summary-card');
+            cards.forEach((card, index) => {
+                // Remove any existing state classes
+                card.classList.remove('loading', 'error', 'success-animation');
+
+                if (isLoading) {
+                    // Add loading class with a slight delay for each card
+                    setTimeout(() => {
+                        card.classList.add('loading');
+                    }, index * 100);
+                }
+            });
+        }
+
+        // Function to show success state for summary cards
+        function showSummarySuccess() {
+            const cards = document.querySelectorAll('.summary-card');
+            cards.forEach((card, index) => {
+                card.classList.remove('loading', 'error');
+
+                // Add success animation with staggered timing
+                setTimeout(() => {
+                    card.classList.add('success-animation');
+                    setTimeout(() => {
+                        card.classList.remove('success-animation');
+                    }, 600);
+                }, index * 100);
+            });
+        }
+
+        // Enhanced function to show error state for summary cards
+        function showSummaryError(errorMessage = 'Unable to load data') {
+            const cards = document.querySelectorAll('.summary-card');
+            cards.forEach(card => {
+                card.classList.remove('loading', 'success-animation');
+                card.classList.add('error');
+            });
+
+            const valueElements = [
+                'totalWellsValue', 'dailyProductionValue',
+                'averageTHPValue', 'downtimeValue'
+            ];
+
+            valueElements.forEach(id => {
+                document.getElementById(id).textContent = 'Error';
+            });
+
+            const changeElements = [
+                'totalWellsChange', 'dailyProductionChange',
+                'averageTHPChange', 'downtimeChange'
+            ];
+
+            changeElements.forEach(id => {
+                const element = document.getElementById(id);
+                element.querySelector('span').textContent = errorMessage;
+                element.classList.remove('positive', 'negative');
+                element.classList.add('neutral');
+            });
+
+            // Show error status
+            showStatus(`Summary Statistics Error: ${errorMessage}`, 'error');
+        }
+
+        // Enhanced function to format numbers for display
+        function formatNumber(value) {
+            if (value === null || value === undefined) return '0';
+
+            const num = parseFloat(value);
+            if (isNaN(num)) return '0';
+
+            // Format based on the size of the number
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'K';
+            } else if (num >= 100) {
+                return num.toFixed(0);
+            } else {
+                return num.toFixed(1);
+            }
+        }
+
+        // Function to refresh summary statistics periodically
+        function startSummaryAutoRefresh(intervalMinutes = 5) {
+            // Clear existing interval if any
+            if (summaryRefreshInterval) {
+                clearInterval(summaryRefreshInterval);
+            }
+
+            // Set up new interval
+            summaryRefreshInterval = setInterval(() => {
+                console.log('Auto-refreshing summary statistics...');
+                loadSummaryStatistics();
+            }, intervalMinutes * 60 * 1000);
+        }
+
+        // Function to stop auto refresh
+        function stopSummaryAutoRefresh() {
+            if (summaryRefreshInterval) {
+                clearInterval(summaryRefreshInterval);
+                summaryRefreshInterval = null;
+            }
+        }
+
+        // Function to handle manual refresh of summary statistics
+        function refreshSummaryManually() {
+            console.log('Manual refresh of summary statistics triggered');
+            loadSummaryStatistics();
+        }
+
+        // DATE FILTER FUNCTIONS
+
+        // Enhanced applyDateFilter function
+        function applyDateFilter() {
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+
+            // Validate date range
+            if (dateFrom && dateTo && new Date(dateFrom) > new Date(dateTo)) {
+                showStatus('Invalid date range: "From" date cannot be after "To" date', 'error');
+                return;
+            }
+
+            // Update current filter
+            currentDateFilter = {
+                dateFrom: dateFrom || null,
+                dateTo: dateTo || null
+        };
+
+
+            // Reset to first page when applying new filter
+            currentPage = 1;
+
+            // Show loading message
+            showStatus('Applying filter and refreshing data...', 'success');
+
+            // Load filtered data and refresh summary
+            Promise.all([
+                loadPageData(1),
+                loadSummaryStatistics()
+            ]).then(() => {
+                showStatus('Filter applied successfully!', 'success');
+            }).catch(error => {
+                console.error('Error applying filter:', error);
+                showStatus('Error applying filter', 'error');
+            });
+
+            // Update filter status display
+            updateFilterStatus();
+        }
+
+        // Enhanced clearDateFilter function
+        function clearDateFilter() {
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            currentDateFilter = {
+                dateFrom: null,
+                dateTo: null
+            };
+
+            // Reset to first page
+            currentPage = 1;
+
+            // Show loading message
+            showStatus('Clearing filter and refreshing data...', 'success');
+
+            // Reload data and refresh summary
+            Promise.all([
+                loadPageData(1),
+                loadSummaryStatistics()
+            ]).then(() => {
+                showStatus('Filter cleared successfully!', 'success');
+            }).catch(error => {
+                console.error('Error clearing filter:', error);
+                showStatus('Error clearing filter', 'error');
+            });
+
+            // Update filter status display
+            updateFilterStatus();
+        }
+
+        function updateFilterStatus() {
+            const statusElement = document.getElementById('filterStatus');
+
+            if (currentDateFilter.dateFrom || currentDateFilter.dateTo) {
+                let statusText = 'Filtered: ';
+                if (currentDateFilter.dateFrom && currentDateFilter.dateTo) {
+                    statusText += `${formatDateForDisplay(currentDateFilter.dateFrom)} to ${formatDateForDisplay(currentDateFilter.dateTo)}`;
+                } else if (currentDateFilter.dateFrom) {
+                    statusText += `From ${formatDateForDisplay(currentDateFilter.dateFrom)}`;
+                } else if (currentDateFilter.dateTo) {
+                    statusText += `Until ${formatDateForDisplay(currentDateFilter.dateTo)}`;
+                }
+                statusElement.textContent = statusText;
+                statusElement.style.color = '#007bff';
+            } else {
+                statusElement.textContent = 'No date filter applied';
+                statusElement.style.color = '#6c757d';
+            }
+        }
+
+        function formatDateForDisplay(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US');
+        }
+
+        // Event listeners for date filter buttons
+        document.getElementById('applyFilter').addEventListener('click', applyDateFilter);
+        document.getElementById('clearFilter').addEventListener('click', clearDateFilter);
+
+        // Apply filter when Enter is pressed in date inputs
+        document.getElementById('dateFrom').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                applyDateFilter();
+            }
+        });
+
+        document.getElementById('dateTo').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                applyDateFilter();
+            }
+        });
+
+        // CSV Export functionality
+        document.getElementById('exportCSV').addEventListener('click', function() {
+            try {
+                showStatus('Fetching all records for export...', 'success');
+
+                // Build URL to get all data (not paginated) with current date filter
+                let url = `/DailyWellData?handler=AllData`;
+                if (currentDateFilter.dateFrom) {
+                    url += `&dateFrom=${currentDateFilter.dateFrom}`;
+                }
+                if (currentDateFilter.dateTo) {
+                    url += `&dateTo=${currentDateFilter.dateTo}`;
+                }
+
+                // Fetch all data from server
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "RequestVerificationToken": antiForgeryToken
+                    },
+                    success: function(result) {
+                        if (result.success) {
+                            showStatus('Generating CSV file...', 'success');
+
+                            // Transform server data to match our table format
+                            const allData = result.data.map(item => {
+                                // Handle WellID display in CSV
+                                let wellIdDisplay = item.wellID;
+                                const matchingWell = wellIdOptions.find(well => well.id == item.wellID);
+                                if (matchingWell) {
+                                    wellIdDisplay = matchingWell.name;
+                                }
+
+                                return {
+                                    ID: item.id,
+                                    Date: item.date ? new Date(item.date).toLocaleDateString('en-US') : "",
+                                    WellID: wellIdDisplay,
+                                    WellType: item.wellType,
+                                    Horizon: item.horizon,
+                                    Flow: item.flow,
+                                    Tbg_Choke_mm: item.tbg_Choke_mm,
+                                    Csg_Choke_mm: item.csg_Choke_mm,
+                                    THP_barg: item.thP_barg,
+                                    THT_C: item.thT_C,
+                                    CHP_barg: item.chP_barg,
+                                    Flowing_To: item.flowing_To,
+                                    Sep_press_bar: item.sep_press_bar,
+                                    Sep_temp_C: item.sep_temp_C,
+                                    Liq_rate_m3d: item.liq_rate_m3d,
+                                    BSW_pcnt: item.bsW_pcnt,
+                                    Fl_Line_Pres_barg: item.fl_Line_Pres_barg,
+                                    Liquid_lvl_csg_m: item.liquid_lvl_csg_m,
+                                    Pumping_Speed_spm: item.pumping_Speed_spm,
+                                    Stroke_Length_m: item.stroke_Length_m,
+                                    Pump_Depth_m: item.pump_Depth_m,
+                                    Vol_Inj_m3: item.vol_Inj_m3,
+                                    Hrs_Inj_hrs: item.hrs_Inj_hrs,
+                                    Gas_rate_mm_m3d: item.gas_rate_mm_m3d,
+                                    Specific_gravity_oil: item.specific_gravity_oil,
+                                    Specific_gravity_gas: item.specific_gravity_gas,
+                                    HOWC: item.howc,
+                                    GOR: item.gor,
+                                    Field1: item.field1,
+                                    DownTime: item.downTime,
+                                    Remarks: item.remarks
+                                };
+                            });
+
+                            // Get the column headers (excluding the hidden ID column)
+                            const headers = [
+                                "Date", "Well ID", "Well Type", "Horizon", "Flow", "Tbg Choke mm",
+                                "Csg Choke mm", "THP barg", "THT C", "CHP barg", "Flowing To",
+                                "Sep press bar", "Sep temp C", "Liq rate m3d", "BSW pcnt",
+                                "Fl Line Pres barg", "Liquid lvl csg m", "Pumping Speed spm",
+                                "Stroke Length m", "Pump Depth m", "Vol Inj m3", "Hrs Inj hrs",
+                                "Gas rate mm m3d", "Specific gravity oil", "Specific gravity gas",
+                                "HOWC", "GOR", "Field1", "DownTime", "Remarks"
+                            ];
+
+                            // Create CSV content with headers
+                            let csvContent = headers.join(',') + '\n';
+
+                            // Add data rows
+                            allData.forEach(function(row) {
+                                // Format the date
+                                let dateStr = row.Date || '';
+
+                                // Create CSV row (handle null values and ensure proper CSV escaping)
+                                const csvRow = [
+                                    escapeCsvValue(dateStr),
+                                    escapeCsvValue(row.WellID),
+                                    escapeCsvValue(row.WellType),
+                                    escapeCsvValue(row.Horizon),
+                                    escapeCsvValue(row.Flow),
+                                    escapeCsvValue(row.Tbg_Choke_mm),
+                                    escapeCsvValue(row.Csg_Choke_mm),
+                                    escapeCsvValue(row.THP_barg),
+                                    escapeCsvValue(row.THT_C),
+                                    escapeCsvValue(row.CHP_barg),
+                                    escapeCsvValue(row.Flowing_To),
+                                    escapeCsvValue(row.Sep_press_bar),
+                                    escapeCsvValue(row.Sep_temp_C),
+                                    escapeCsvValue(row.Liq_rate_m3d),
+                                    escapeCsvValue(row.BSW_pcnt),
+                                    escapeCsvValue(row.Fl_Line_Pres_barg),
+                                    escapeCsvValue(row.Liquid_lvl_csg_m),
+                                    escapeCsvValue(row.Pumping_Speed_spm),
+                                    escapeCsvValue(row.Stroke_Length_m),
+                                    escapeCsvValue(row.Pump_Depth_m),
+                                    escapeCsvValue(row.Vol_Inj_m3),
+                                    escapeCsvValue(row.Hrs_Inj_hrs),
+                                    escapeCsvValue(row.Gas_rate_mm_m3d),
+                                    escapeCsvValue(row.Specific_gravity_oil),
+                                    escapeCsvValue(row.Specific_gravity_gas),
+                                    escapeCsvValue(row.HOWC),
+                                    escapeCsvValue(row.GOR),
+                                    escapeCsvValue(row.Field1),
+                                    escapeCsvValue(row.DownTime),
+                                    escapeCsvValue(row.Remarks)
+                                ];
+
+                                csvContent += csvRow.join(',') + '\n';
+                            });
+
+                            // Create a blob and download link
+                            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+
+                            // Generate filename with date range if filtered
+                            let filename = 'daily_well_data';
+                            if (currentDateFilter.dateFrom || currentDateFilter.dateTo) {
+                                filename += '_filtered';
+                                if (currentDateFilter.dateFrom) {
+                                    filename += '_from_' + currentDateFilter.dateFrom.replace(/-/g, '');
+                                }
+                                if (currentDateFilter.dateTo) {
+                                    filename += '_to_' + currentDateFilter.dateTo.replace(/-/g, '');
+                                }
+                            }
+                            filename += '.csv';
+
+                            // Set link attributes
+                            link.setAttribute('href', url);
+                            link.setAttribute('download', filename);
+                            link.style.visibility = 'hidden';
+
+                            // Add to document, click to download, then remove
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+
+                            showStatus(`CSV file generated successfully! Exported ${allData.length} records.`, 'success');
+                        } else {
+                            showStatus('Error fetching data for export: ' + (result.message || 'Unknown error'), 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Export error status:', status);
+                        console.error('Export error response:', xhr.responseText);
+                        showStatus('Error fetching data for export: ' + error, 'error');
+                    }
+                });
+            } catch (e) {
+                console.error('Error during CSV export:', e);
+                showStatus('Error during CSV export: ' + e.message, 'error');
+            }
+        });
+
+        // Helper function to properly escape CSV values
+        function escapeCsvValue(value) {
+            if (value === null || value === undefined) return '';
+
+            // Convert to string
+            const str = String(value);
+
+            // Check if the value needs to be enclosed in quotes
+            // (if it contains commas, quotes, or newlines)
+            if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                // Double any quotes and enclose in quotes
+                return '"' + str.replace(/"/g, '""') + '"';
+            }
+
+            return str;
+        }
+
+        // Add new row button functionality
+        document.getElementById('addRow').addEventListener('click', function() {
+            // Get current date in MM/DD/YYYY format
+            const today = new Date();
+            const formattedDate = (today.getMonth() + 1) + '/' + today.getDate() + '/' + today.getFullYear();
+
+            // Show status message
+            showStatus('Adding new row...', 'success');
+
+            // Get suggested well ID - use the first well from the dropdown
+            const suggestedWellId = wellIdOptions.length > 0 ? wellIdOptions[0].name : "";
+
+            // Add new row to the data source with proper defaults
+            const newRowData = {
+                ID: 0,  // This will be auto-generated by the database
+                Date: formattedDate,
+                WellID: suggestedWellId, // Use the well name for display
+                WellType: null,
+                Horizon: null,
+                Flow: null,
+                Tbg_Choke_mm: null,
+                Csg_Choke_mm: null,
+                THP_barg: null,
+                THT_C: null,
+                CHP_barg: null,
+                Flowing_To: null,
+                Sep_press_bar: null,
+                Sep_temp_C: null,
+                Liq_rate_m3d: null,
+                BSW_pcnt: null,
+                Fl_Line_Pres_barg: null,
+                Liquid_lvl_csg_m: null,
+                Pumping_Speed_spm: null,
+                Stroke_Length_m: null,
+                Pump_Depth_m: null,
+                Vol_Inj_m3: null,
+                Hrs_Inj_hrs: null,
+                Gas_rate_mm_m3d: null,
+                Specific_gravity_oil: null,
+                Specific_gravity_gas: null,
+                HOWC: null,
+                GOR: null,
+                Field1: null,
+                DownTime: null,
+                Remarks: null
+            };
+
+            // Get current data and add new row
+            const currentData = hot.getSourceData();
+            currentData.push(newRowData);
+
+            // Refresh the table with the new data
+            hot.loadData(currentData);
+
+            // Scroll to the bottom
+            hot.scrollViewportTo(currentData.length - 1);
+
+            // Select the new row's first cell
+            hot.selectCell(currentData.length - 1, 1); // Select Date column since ID is hidden
+
+            showStatus('New row added. Edit the row and click "Save Changes" when done.', 'success');
+        });
+
+         // Enhanced save function to refresh summary after save
+        document.getElementById('saveChanges').addEventListener('click', function() {
+            showStatus('Saving changes...', 'success');
+
+            try {
+                // Get all data from the table
+                const dataToSave = [];
+                const sourceData = hot.getSourceData();
+
+                for (let i = 0; i < sourceData.length; i++) {
+                    const row = sourceData[i];
+
+                    // Only include rows that have some data (not completely empty)
+                    if (row.WellID || row.Date || row.Liq_rate_m3d || row.Remarks) {
+                        let dateValue = null;
+                        if (row.Date) {
+                            try {
+                                // Try to parse the date - accept multiple formats
+                                const dateObj = new Date(row.Date);
+                                if (!isNaN(dateObj.getTime())) {
+                                    dateValue = dateObj.toISOString();
+                                }
+                            } catch (e) {
+                                console.error("Error parsing date:", row.Date, e);
+                            }
+                        }
+
+                        // Handle WellID - convert from display name to ID
+                        let wellIdValue = 0;
+                        if (row.WellID) {
+                            const matchingWell = wellIdOptions.find(well =>
+                                well.name === row.WellID || well.id.toString() === row.WellID.toString()
+                            );
+                            wellIdValue = matchingWell ? matchingWell.id : parseInt(row.WellID) || 0;
+                        }
+
+                        dataToSave.push({
+                            ID: parseInt(row.ID, 10) || 0,
+                            Date: dateValue,
+                            WellID: wellIdValue, // Use the numeric ID
+                            WellType: row.WellType || null,
+                            Horizon: row.Horizon || null,
+                            Flow: row.Flow || null,
+                            Tbg_Choke_mm: row.Tbg_Choke_mm !== null && row.Tbg_Choke_mm !== "" ? parseFloat(row.Tbg_Choke_mm) : null,
+                            Csg_Choke_mm: row.Csg_Choke_mm !== null && row.Csg_Choke_mm !== "" ? parseFloat(row.Csg_Choke_mm) : null,
+                            THP_barg: row.THP_barg !== null && row.THP_barg !== "" ? parseFloat(row.THP_barg) : null,
+                            THT_C: row.THT_C !== null && row.THT_C !== "" ? parseFloat(row.THT_C) : null,
+                            CHP_barg: row.CHP_barg !== null && row.CHP_barg !== "" ? parseFloat(row.CHP_barg) : null,
+                            Flowing_To: row.Flowing_To || null,
+                            Sep_press_bar: row.Sep_press_bar !== null && row.Sep_press_bar !== "" ? parseFloat(row.Sep_press_bar) : null,
+                            Sep_temp_C: row.Sep_temp_C !== null && row.Sep_temp_C !== "" ? parseFloat(row.Sep_temp_C) : null,
+                            Liq_rate_m3d: row.Liq_rate_m3d !== null && row.Liq_rate_m3d !== "" ? parseFloat(row.Liq_rate_m3d) : null,
+                            BSW_pcnt: row.BSW_pcnt !== null && row.BSW_pcnt !== "" ? parseFloat(row.BSW_pcnt) : null,
+                            Fl_Line_Pres_barg: row.Fl_Line_Pres_barg !== null && row.Fl_Line_Pres_barg !== "" ? parseFloat(row.Fl_Line_Pres_barg) : null,
+                            Liquid_lvl_csg_m: row.Liquid_lvl_csg_m !== null && row.Liquid_lvl_csg_m !== "" ? parseFloat(row.Liquid_lvl_csg_m) : null,
+                            Pumping_Speed_spm: row.Pumping_Speed_spm !== null && row.Pumping_Speed_spm !== "" ? parseFloat(row.Pumping_Speed_spm) : null,
+                            Stroke_Length_m: row.Stroke_Length_m !== null && row.Stroke_Length_m !== "" ? parseFloat(row.Stroke_Length_m) : null,
+                            Pump_Depth_m: row.Pump_Depth_m !== null && row.Pump_Depth_m !== "" ? parseFloat(row.Pump_Depth_m) : null,
+                            Vol_Inj_m3: row.Vol_Inj_m3 !== null && row.Vol_Inj_m3 !== "" ? parseFloat(row.Vol_Inj_m3) : null,
+                            Hrs_Inj_hrs: row.Hrs_Inj_hrs !== null && row.Hrs_Inj_hrs !== "" ? parseFloat(row.Hrs_Inj_hrs) : null,
+                            Gas_rate_mm_m3d: row.Gas_rate_mm_m3d !== null && row.Gas_rate_mm_m3d !== "" ? parseFloat(row.Gas_rate_mm_m3d) : null,
+                            Specific_gravity_oil: row.Specific_gravity_oil !== null && row.Specific_gravity_oil !== "" ? parseFloat(row.Specific_gravity_oil) : null,
+                            Specific_gravity_gas: row.Specific_gravity_gas !== null && row.Specific_gravity_gas !== "" ? parseFloat(row.Specific_gravity_gas) : null,
+                            HOWC: row.HOWC || null,
+                            GOR: row.GOR !== null && row.GOR !== "" ? parseFloat(row.GOR) : null,
+                            Field1: row.Field1 || null,
+                            DownTime: row.DownTime !== null && row.DownTime !== "" ? parseFloat(row.DownTime) : null,
+                            Remarks: row.Remarks || null
+                        });
+                    }
+                }
+
+                // Log the data being sent for debugging
+                console.log("Data being sent to server:", JSON.stringify(dataToSave));
+
+                // Get the token
+                const token = $('input[name="__RequestVerificationToken"]').val();
+
+                if (!token) {
+                    showStatus('Error: Anti-forgery token not found', 'error');
+                    return;
+                }
+
+                // Send data to server
+                $.ajax({
+                    url: '/DailyWellData?handler=UpdateDailyWellData',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(dataToSave),
+                    headers: {
+                        "RequestVerificationToken": token,
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    success: function(result) {
+                        console.log("Server response:", result);
+                        if (result.success) {
+                            showStatus('Data saved successfully!', 'success');
+                            // Refresh both table data and summary statistics
+                            Promise.all([
+                                loadPageData(currentPage),
+                                loadSummaryStatistics()
+                            ]).then(() => {
+                                console.log('Data and summary refreshed after save');
+                            });
+                        } else {
+                            showStatus('Error: ' + result.message, 'error');
+                            console.error('Save error details:', result);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Save error status:', status);
+                        console.error('Save error response:', xhr.responseText);
+                        showStatus('Error saving data: ' + error, 'error');
+                    }
+                });
+            } catch (e) {
+                console.error("Javascript error during save:", e);
+                showStatus('Error preparing data: ' + e.message, 'error');
+            }
+        });
+
+        // Helper function to show status messages
+        function showStatus(message, type) {
+            const statusElement = document.getElementById('statusMessage');
+            statusElement.textContent = message;
+            statusElement.className = 'status-message ' + type;
+            statusElement.style.display = 'block';
+
+            // Auto-hide after 5 seconds
+            setTimeout(function() {
+                statusElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // Pagination functionality
+        function renderPagination() {
+            const pageButtonsContainer = document.getElementById('pageButtons');
+            pageButtonsContainer.innerHTML = '';
+
+            // Calculate which page buttons to show
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+
+            // Adjust start page if we're at the end
+            if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+
+            // Generate page buttons
+            for (let i = startPage; i <= endPage; i++) {
+                const button = document.createElement('button');
+                button.textContent = i;
+                button.classList.toggle('active', i === currentPage);
+                button.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent default button behavior
+                    loadPageData(i);
+                });
+                pageButtonsContainer.appendChild(button);
+            }
+
+            // Update page info
+            document.getElementById('currentPage').textContent = currentPage;
+            document.getElementById('totalPages').textContent = totalPages;
+            document.getElementById('totalRecords').textContent = totalRecords;
+
+            // Enable/disable navigation buttons
+            document.getElementById('firstPage').disabled = currentPage === 1;
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages || totalPages === 0;
+            document.getElementById('lastPage').disabled = currentPage === totalPages || totalPages === 0;
+        }
+
+        // Load page data from server with date filter support
+        function loadPageData(page) {
+            showStatus('Loading data...', 'success');
+
+            // Store the requested page
+            const requestedPage = page;
+
+            // Build URL with date filter parameters
+            let url = `/DailyWellData?handler=PagedData&page=${page}`;
+            if (currentDateFilter.dateFrom) {
+                url += `&dateFrom=${currentDateFilter.dateFrom}`;
+            }
+            if (currentDateFilter.dateTo) {
+                url += `&dateTo=${currentDateFilter.dateTo}`;
+            }
+
+            return new Promise((resolve, reject) => {
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                        "RequestVerificationToken": antiForgeryToken
+                    },
+                    success: function(result) {
+                        if (result.success) {
+                            // Update pagination variables
+                            currentPage = result.pagination.currentPage;
+                            totalPages = result.pagination.totalPages;
+                            totalRecords = result.pagination.totalRecords;
+
+                            // Transform data for HandsOnTable - Show well names instead of IDs
+                            const tableData = result.data.map(item => {
+                                // Find matching well for display
+                                const matchingWell = wellIdOptions.find(well => well.id == item.wellID);
+                                const wellIdDisplay = matchingWell ? matchingWell.name : item.wellID;
+
+                                return {
+                                    ID: item.id || 0,
+                                    Date: item.date ? new Date(item.date).toLocaleDateString('en-US') : "",
+                                    WellID: wellIdDisplay, // Show the well name instead of just ID
+                                    WellType: item.wellType || "",
+                                    Horizon: item.horizon || "",
+                                    Flow: item.flow || "",
+                                    Tbg_Choke_mm: item.tbg_Choke_mm || null,
+                                    Csg_Choke_mm: item.csg_Choke_mm || null,
+                                    THP_barg: item.thP_barg || null,
+                                    THT_C: item.thT_C || null,
+                                    CHP_barg: item.chP_barg || null,
+                                    Flowing_To: item.flowing_To || "",
+                                    Sep_press_bar: item.sep_press_bar || null,
+                                    Sep_temp_C: item.sep_temp_C || null,
+                                    Liq_rate_m3d: item.liq_rate_m3d || null,
+                                    BSW_pcnt: item.bsW_pcnt || null,
+                                    Fl_Line_Pres_barg: item.fl_Line_Pres_barg || null,
+                                    Liquid_lvl_csg_m: item.liquid_lvl_csg_m || null,
+                                    Pumping_Speed_spm: item.pumping_Speed_spm || null,
+                                    Stroke_Length_m: item.stroke_Length_m || null,
+                                    Pump_Depth_m: item.pump_Depth_m || null,
+                                    Vol_Inj_m3: item.vol_Inj_m3 || null,
+                                    Hrs_Inj_hrs: item.hrs_Inj_hrs || null,
+                                    Gas_rate_mm_m3d: item.gas_rate_mm_m3d || null,
+                                    Specific_gravity_oil: item.specific_gravity_oil || null,
+                                    Specific_gravity_gas: item.specific_gravity_gas || null,
+                                    HOWC: item.howc || "",
+                                    GOR: item.gor || null,
+                                    Field1: item.field1 || "",
+                                    DownTime: item.downTime || null,
+                                    Remarks: item.remarks || ""
+                                };
+                            });
+
+                            // Load data into table
+                            hot.loadData(tableData);
+
+                            // Update pagination UI
+                            renderPagination();
+
+                            showStatus('Data loaded successfully!', 'success');
+
+                            // Update URL without page reload to maintain state
+                            if (history.pushState) {
+                                const newUrl = new URL(window.location.href);
+                                newUrl.searchParams.set('CurrentPage', currentPage);
+                                if (currentDateFilter.dateFrom) {
+                                    newUrl.searchParams.set('dateFrom', currentDateFilter.dateFrom);
+                                } else {
+                                    newUrl.searchParams.delete('dateFrom');
+                                }
+                                if (currentDateFilter.dateTo) {
+                                    newUrl.searchParams.set('dateTo', currentDateFilter.dateTo);
+                                } else {
+                                    newUrl.searchParams.delete('dateTo');
+                                }
+                                window.history.pushState({
+                                    page: currentPage,
+                                    dateFilter: currentDateFilter
+                                }, '', newUrl);
+                            }
+
+                            resolve();
+                        } else {
+                            showStatus('Error loading data: ' + (result.message || 'Unknown error'), 'error');
+                            reject(new Error(result.message || 'Unknown error'));
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error status:", status);
+                        console.log("Error text:", xhr.responseText);
+                        showStatus('Error loading data: ' + (xhr.responseText || error), 'error');
+                        reject(new Error(xhr.responseText || error));
+                    }
+                });
+            });
+        }
+
+        // Handle browser back/forward buttons
+        window.onpopstate = function(event) {
+            if (event.state) {
+                if (event.state.page) {
+                    loadPageData(event.state.page);
+                }
+                if (event.state.dateFilter) {
+                    currentDateFilter = event.state.dateFilter;
+                    // Update date input fields
+                    document.getElementById('dateFrom').value = currentDateFilter.dateFrom || '';
+                    document.getElementById('dateTo').value = currentDateFilter.dateTo || '';
+                    updateFilterStatus();
+                    loadSummaryStatistics();
+                }
+            }
+        };
+
+        // Initialize date filter from URL parameters
+        function initializeDateFilterFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dateFrom = urlParams.get('dateFrom');
+            const dateTo = urlParams.get('dateTo');
+
+            if (dateFrom || dateTo) {
+                document.getElementById('dateFrom').value = dateFrom || '';
+                document.getElementById('dateTo').value = dateTo || '';
+                currentDateFilter = {
+                    dateFrom: dateFrom,
+                    dateTo: dateTo
+                };
+                updateFilterStatus();
+            }
+        }
+
+        // Set up pagination event listeners
+        document.getElementById('firstPage').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentPage > 1) loadPageData(1);
+        });
+
+        document.getElementById('prevPage').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentPage > 1) loadPageData(currentPage - 1);
+        });
+
+        document.getElementById('nextPage').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentPage < totalPages) loadPageData(currentPage + 1);
+        });
+
+        document.getElementById('lastPage').addEventListener('click', function(e) {
+            e.preventDefault();
+            if (currentPage < totalPages) loadPageData(totalPages);
+        });
+
+        // Initialize page when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Period selector event listener
+            const periodSelect = document.getElementById('periodSelect');
+            if (periodSelect) {
+                // Set initial value
+                periodSelect.value = currentPeriod;
+
+                // Add change event listener
+                periodSelect.addEventListener('change', onPeriodChange);
+            }
+
+            // Initialize pagination and date filter
+            renderPagination();
+            initializeDateFilterFromUrl();
+            updateFilterStatus();
+
+            // Load initial summary statistics with a small delay
+            setTimeout(() => {
+                loadSummaryStatistics();
+
+                // Start auto-refresh every 5 minutes (optional - uncomment if needed)
+                // startSummaryAutoRefresh(5);
+            }, 500);
+
+            // Add click handlers for manual refresh (optional - double-click cards to refresh)
+            const summaryCards = document.querySelectorAll('.summary-card');
+            summaryCards.forEach(card => {
+                card.addEventListener('dblclick', refreshSummaryManually);
+            });
+        });
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            stopSummaryAutoRefresh();
+        });
+    </script>
+    @Html.AntiForgeryToken()
+</body>
+</html>

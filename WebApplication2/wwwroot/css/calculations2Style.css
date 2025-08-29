@@ -1,0 +1,36 @@
+﻿body {
+    font-family: 'Inter', sans-serif;
+}
+/* Ensure Handsontable container has defined dimensions or grows */
+#handsontable-container {
+    width: 100%; /* Use full width */
+    height: 60vh; /* Set a viewport height, e.g., 60% */
+    overflow: auto; /* Add scroll if content overflows */
+}
+/* Style Handsontable headers */
+.handsontable th {
+    background-color: #f3f4f6; /* Light gray background */
+    font-weight: 500; /* Medium font weight */
+    color: #1f2937; /* Darker text */
+    text-align: center !important; /* Center align header text */
+    padding: 8px 12px; /* Add padding */
+    position: sticky; /* Make headers sticky */
+    top: 0; /* Stick to the top */
+    z-index: 1; /* Ensure headers are above scrolling content */
+}
+/* Style Handsontable cells */
+.handsontable td {
+    padding: 8px 12px; /* Add padding */
+    vertical-align: middle; /* Vertically align content */
+    text-align: right; /* Right-align numeric data by default */
+}
+    /* Style the first column (Well ID) */
+    .handsontable td:first-child {
+        text-align: left !important; /* Left-align Well ID */
+        font-weight: 500; /* Medium font weight for Well ID */
+        color: #374151; /* Slightly lighter text */
+    }
+/* Style numeric columns */
+.handsontable .htNumeric {
+    text-align: right !important; /* Ensure numeric columns are right-aligned */
+}

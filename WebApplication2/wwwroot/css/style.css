@@ -157,6 +157,21 @@ input, textarea {
         border: 1px solid #f5c6cb;
     }
 
+    .status-message.warning {
+        background-color: #f5c907;
+        color: black;
+        border: 1px solid #f5c6cb;
+    }
+
+input[type="radio"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+tr.has-accepted-record {
+    background-color: #d4edda;
+}
+
 /*-------------------------------*/
 .date-picker {
     display: flex;
@@ -187,3 +202,324 @@ input, textarea {
     font-weight: bold;
     margin: 0 10px;
 }
+
+/*---------------------------------------------*/
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem; /* Add some padding around the header */
+    background-color: #f8f9fa; /* Light background for the header */
+    border-bottom: 1px solid #dee2e6; /* Subtle bottom border */
+}
+
+    .card-header h4 {
+        margin: 0; /* Remove default margin for the heading */
+        font-size: 2rem; /* Slightly larger font for the title */
+        color: #343a40; /* Darker text color for the title */
+    }
+
+    .card-header .badge {
+        padding: 0.5rem 0.75rem; /* Adjust padding for the badge */
+        font-size: 0.875rem; /* Slightly smaller font for the badge text */
+        font-weight: 500; /* Semi-bold font weight for emphasis */
+        line-height: 1;
+        color: #fff; /* White text color for the badge */
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.25rem; /* Slightly rounded corners for the badge */
+        background-color: #007bff; /* Primary blue background color (you can adjust) */
+    }
+
+    /* Optional enhancements */
+
+    /* Add a subtle shadow to the badge */
+    .card-header .badge {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
+    /* Slightly increase the font size of the date range */
+    .card-header .badge {
+        font-size: 1.5rem;
+    }
+
+        /* Use a different background color for the badge */
+        .card-header .badge.date-range {
+            background-color: #28a745; /* Success green */
+        }
+
+    /* Add a subtle border to the badge */
+    .card-header .badge {
+        border: 1px solid transparent;
+    }
+
+    /* Add a slight margin to the left of the badge for spacing */
+    .card-header .badge {
+        margin-left: 1rem;
+    }
+
+/*-----------------------------------------*/
+
+.my-4 {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    padding: 10px 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+    .card-header h5 {
+        margin: 0;
+        font-size: 2rem;
+    }
+
+.card-body {
+    padding: 15px;
+}
+
+.date-input-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center; /* Vertically align items in the center */
+    gap: 15px; /* Space between the elements */
+}
+
+.form-group {
+    margin-bottom: 0; /* Remove default bottom margin for inline layout */
+}
+
+.form-label {
+    display: block; /* Make labels take full width within their container */
+    margin-bottom: 5px;
+    font-size: 1.5rem;
+    color: #555;
+}
+
+.form-control {
+    display: block;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 1.5rem;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    box-sizing: border-box; /* Ensure padding and border are inside the element's width */
+}
+
+    .form-control:focus {
+        border-color: #007bff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+.btn {
+    display: inline-block;
+    font-weight: 400;
+    color: #fff;
+    text-align: center;
+    vertical-align: middle;
+    user-select: none;
+    background-color: #007bff;
+    border: 1px solid #007bff;
+    padding: 0.375rem 0.75rem;
+    font-size: 1.5rem;
+    line-height: 1.5;
+    border-radius: 0.25rem;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    cursor: pointer;
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+    .btn:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+
+    .btn i {
+        margin-right: 0.5rem; /* Space between icon and text */
+    }
+
+/* Adjust width of input groups for better alignment */
+.form-group {
+    flex-grow: 1; /* Allow them to take up equal available space */
+}
+
+    /* Ensure button doesn't stretch too much */
+    .form-group:last-child {
+        flex-grow: 0;
+    }
+
+/*------------------------------------------------------*/
+
+.action-buttons {
+    margin: 15px 0;
+}
+
+    .action-buttons button {
+        padding: 8px 15px;
+        margin-right: 10px;
+        cursor: pointer;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+    }
+
+        .action-buttons button:hover {
+            background-color: #0069d9;
+        }
+
+/*-----------------------------------------------*/
+
+.sticky-well-data {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 80%;
+    background-color: #fff;
+    margin: auto;
+    border-radius: 8px;
+/*    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);*/
+    max-width: 70%;
+    height: 90%;
+    overflow: auto;
+    margin-bottom: 20px;
+}
+
+#select-well {
+    padding: 15px 15px 0 15px;
+    background-color: rgb(244, 244, 249);
+}
+
+#select-date {
+    padding: 0 15px 15px 15px;
+    background-color: rgb(244, 244, 249);
+}
+
+/*---------------------------------------------------*/
+/* Styles for Month Picker */
+.month-picker {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar {
+    position: fixed; /* Keep it fixed for viewport positioning */
+    background-color: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2); /* More pronounced shadow */
+    display: none;
+    z-index: 1000;
+    padding: 15px; /* Slightly more padding */
+    border-radius: 5px; /* Optional: Rounded corners */
+    min-width: 250px; /* Optional: Minimum width */
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Display months in a 3x4 grid */
+    gap: 5px;
+}
+
+.calendar-month {
+    text-align: center;
+    padding: 10px;
+    cursor: pointer;
+    border: 1px solid transparent; /* Add a transparent border for hover effect */
+}
+
+    .calendar-month:hover {
+        background-color: #f0f0f0;
+        border: 1px solid #ddd;
+    }
+
+    .calendar-month.selected {
+        background-color: #007bff; /* Or your preferred highlight color */
+        color: white;
+    }
+
+.month-display {
+    padding: 8px 15px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #fff;
+    min-width: 150px;
+    text-align: center;
+    margin: 0 10px;
+}
+
+    .month-display:hover {
+        background-color: #f8f9fa;
+    }
+
+.year-display {
+    font-weight: bold;
+    font-size: 1.2em;
+    padding: 5px;
+}
+
+/* Make the date input row more flexible */
+.date-input-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 15px;
+}
+
+/*------------------------------------------------------*/
+/* Go Up button */
+#goUpBtn {
+    display: none; /* Initially hide the button */
+    position: fixed; /* Keep the button in a fixed position relative to the viewport */
+    bottom: 20px; /* Position it 20px from the bottom */
+    right: 20px; /* Position it 20px from the right */
+    z-index: 99; /* Make sure it appears above other elements */
+    border: none;
+    outline: none;
+    background-color: #007bff; /* Example background color */
+    color: white;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+    opacity: 0.7; /* Adjust opacity as needed */
+    transition: opacity 0.3s ease-in-out; /* Add a smooth transition for opacity */
+}
+
+    #goUpBtn:hover {
+        opacity: 1; /* Increase opacity on hover */
+    }
+
+    #goUpBtn svg { /* Style the SVG icon */
+        width: 20px;
+        height: 20px;
+    }

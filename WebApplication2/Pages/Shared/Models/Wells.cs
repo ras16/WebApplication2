@@ -15,5 +15,6 @@
         public  double? kb_lev { get; set; }
         public  double? ground_lev { get; set; }
 
+        public ICollection<AcceptedParameters> AcceptedParameters { get; set; }
     }
 }

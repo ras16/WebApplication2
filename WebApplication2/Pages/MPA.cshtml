@@ -16,11 +16,10 @@
 </head>
 <body>
 
-    <div class="container">
+    <div class="sticky-well-data">
+        <div id="select-well" class="option">
 
-        <div class="option">
-
-            <label for="wellID"> Select a Well: </label>
+            <label style="font-size: 1.7rem;" for="wellID"> Select a Well: </label>
 
             <select name="wellID" id="wellID" onchange="fetchWellData()">
                 <option value=""></option>
@@ -32,6 +31,45 @@
 
         </div>
 
+        <div id="select-date" class="option">
+            <div class="date-picker">
+                <button class="btn" onclick="changeMonth(-1)">Previous</button>
+                <div class="month-display" id="monthDisplay" onclick="toggleCalendar()"></div>
+                <button class="btn" onclick="changeMonth(1)">Next</button>
+            </div>
+            <div class="calendar" id="calendar">
+                <div class="calendar-header">
+                    <button class="btn" onclick="changeCalendarYear(-1)">Previous Year</button>
+                    <div class="year-display" id="yearDisplay"></div>
+                    <button class="btn" onclick="changeCalendarYear(1)">Next Year</button>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        @* <div class="option"> *@
+
+        @*     <label for="fieldID"> Select a Field: </label> *@
+
+        @*     <select name="fieldID" id="fieldID" onchange=""> *@
+        @*         <option value=""></option> *@
+        @*         <option value="">Burun 1</option> *@
+        @*         <option value="">Burun 2</option> *@
+        @*         <option value="">Burun 3</option> *@
+        @*     </select> *@
+
+        @* </div> *@
+
+        <div class="action-buttons">
+            <button onclick="updateAllDaysOn()">Update All DaysOn Values</button>
+            @* <button onclick="filterAcceptedValues()">Show Current Month Only</button> *@
+            @* <button onclick="loadAcceptedValues()">Show All Values</button> *@
+        </div>
+
         <hr />
         <div id="wellDetails">
             <p>Select a well to view details.</p>
@@ -40,50 +78,129 @@
             <p></p>
         </div>
 
-        <br /> <br /> <br />
+        <br />
         <div id="selectedRecordsTable">
-            
             <table id="bottomTable" border="1">
-                <thead>
-                    <tr>
-                        <th class="sticky-id-header">ID</th>
-                        <th>Well Name</th>
-                        <th>Date</th>
-                        <th>Production Interval</th>
-                        <th>Test Type</th>
-                        <th>Flow Type</th>
-                        <th>Hours Tested</th>
-                        <th>Avg TBG Choke</th>
-                        <th>Avg CSG Choke</th>
-                        <th>Avg THP Barg</th>
-                        <th>Avg THT F</th>
-                        <th>Avg CHP Barg</th>
-                        <th>Avg Oil M3/Day</th>
-                        <th>Avg Water M3/Day</th>
-                        <th>Avg Gas 10^6 M3/Day</th>
-                        <th>GOR</th>
-                        <th>Avg Inj Gas Rate</th>
-                        <th>Oil SG</th>
-                        <th>Gas SG</th>
-                        <th>Oil Mt/Day</th>
-                        <th>NaCl PPM</th>
-                        <th>BSW</th>
-                        <th>Test Company</th>
-                        <th>Rig Kit</th>
-                        <th>Entered By</th>
-                        <th>No Prod</th>
-                        <th>Comments</th>
-                        <th>Interval Top</th>
-                        <th>Interval Bottom</th>
-                        <th>Representative Ind</th>
-                        <th>Remove</th>
-                    </tr>
-                </thead>
                 <tbody id="selectedRecordsBody">
                     <!-- Selected records will be inserted here -->
                 </tbody>
             </table>
         </div>
+
+        <script>
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            let currentDate = new Date();
+            let calendarDate = new Date(); // Separate date for the calendar display
+
+            const monthDisplay = document.getElementById("monthDisplay");
+            const calendar = document.getElementById("calendar");
+            const yearDisplay = document.getElementById("yearDisplay");
+            const calendarGrid = document.getElementById("calendarGrid");
+
+            function updateDisplay() {
+                monthDisplay.innerText = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+            }
+
+            function changeMonth(step) {
+                currentDate.setMonth(currentDate.getMonth() + step);
+                calendarDate = new Date(currentDate); // Keep calendar in sync
+                updateDisplay();
+                reloadOrHideData();
+            }
+
+            function toggleCalendar() {
+                const monthDisplayElement = document.getElementById("monthDisplay");
+                const calendarElement = document.getElementById("calendar");
+
+                if (calendarElement.style.display === "none") {
+                    calendarElement.style.display = "block";
+
+                    const rect = monthDisplayElement.getBoundingClientRect();
+                    const calendarWidth = calendarElement.offsetWidth;
+                    const calendarHeight = calendarElement.offsetHeight;
+                    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+                    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+                    // Calculate the horizontal center position relative to the month display
+                    let calendarLeft = rect.left + (rect.width - calendarWidth) / 2;
+
+                    // Calculate the vertical position below the month display
+                    let calendarTop = rect.bottom + 10; // Add some spacing
+
+                    // Adjust if going off-screen horizontally
+                    if (calendarLeft < 0) {
+                        calendarLeft = 10; // Snap to left with some margin
+                    } else if (calendarLeft + calendarWidth > viewportWidth) {
+                        calendarLeft = viewportWidth - calendarWidth - 10; // Snap to right with some margin
+                    }
+
+                    // Adjust if going off-screen vertically (try above if below doesn't fit)
+                    if (calendarTop + calendarHeight > viewportHeight) {
+                        calendarTop = rect.top - calendarHeight - 10; // Show above
+                        if (calendarTop < 0) {
+                            // If still off-screen, try the original position
+                            calendarTop = rect.bottom + 10;
+                        }
+                    }
+
+                    calendarElement.style.top = `${calendarTop}px`;
+                    calendarElement.style.left = `${calendarLeft}px`;
+                    calendarDate = new Date(currentDate);
+                    updateCalendarHeader();
+                    updateCalendar();
+                } else {
+                    calendarElement.style.display = "none";
+                }
+            }
+
+            function updateCalendarHeader() {
+                yearDisplay.innerText = `${calendarDate.getFullYear()}`;
+            }
+
+            function changeCalendarYear(step) {
+                calendarDate.setFullYear(calendarDate.getFullYear() + step);
+                updateCalendarHeader();
+                updateCalendar();
+            }
+
+            function updateCalendar() {
+                calendarGrid.innerHTML = ""; // Clear previous calendar
+
+                // Add month cells
+                monthNames.forEach((month, index) => {
+                    const monthCell = document.createElement("div");
+                    monthCell.classList.add("calendar-month");
+                    monthCell.innerText = month;
+                    monthCell.addEventListener("click", () => {
+                        currentDate = new Date(calendarDate.getFullYear(), index, 1); // Set day to 1st
+                        updateDisplay();
+                        calendar.style.display = "none"; // Hide calendar after selection
+                        reloadOrHideData();
+                    });
+
+                    // Highlight the currently selected month (optional)
+                    if (currentDate.getFullYear() === calendarDate.getFullYear() && currentDate.getMonth() === index) {
+                        monthCell.classList.add("selected");
+                    }
+
+                    calendarGrid.appendChild(monthCell);
+                });
+            }
+
+            function reloadOrHideData() {
+                const wellID = document.getElementById("wellID").value;
+                if (wellID) {
+                    fetchWellData();
+                } else {
+                    document.getElementById("selectedRecordsTable").style.display = "none";
+                }
+                filterAcceptedValues();
+            }
+
+            // Initial display
+            updateDisplay();
+            calendar.style.display = "none"; // Initially hide the calendar
+        </script>
 
         @* Add this to enable AJAX calls *@
         @section Scripts {
@@ -109,20 +226,50 @@
             // Store all well data for reference
             let allWellData = [];
 
+            // Disable selection for wells that already have an accepted record for the current month
+            function checkExistingMonthlyRecords(wellId, month, year) {
+                fetch(`?handler=CheckExistingMonthlyRecord&wellId=${wellId}&month=${month}&year=${year}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists) {
+                            // If a record exists for this month, show a message
+                            const statusElement = document.getElementById('selectionStatus');
+                            statusElement.innerHTML = `<p>A record for this well for ${month}/${year} already exists in Accepted Values.</p>`;
+                            statusElement.className = "status-message warning";
+
+                            // Disable all radio buttons in the last six well details table
+                            const radioButtons = document.querySelectorAll('#lastSixWellDetails input[type="radio"]');
+                            radioButtons.forEach(radio => {
+                                radio.disabled = true;
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking existing monthly record:', error);
+                    });
+            }
+
             function fetchWellData() {
                 const wellID = document.getElementById("wellID").value;
+                const month = currentDate.getMonth() + 1; // JavaScript months are 0-based, so add 1
+                const year = currentDate.getFullYear(); 
+
                 if (!wellID) {
                     document.getElementById("wellDetails").innerHTML = "<p>Select a well to view details.</p>";
                     document.getElementById("lastSixWellDetails").innerHTML = "";
+                    document.getElementById("selectedRecordsTable").style.display = "none";
                     return;
                 }
 
-                fetch(`?handler=GetWellData&wellID=${wellID}`)
+                fetch(`?handler=GetWellData&wellID=${wellID}&month=${month}&year=${year}`)
                     .then(response => response.json())
                     .then(data => {
                         allWellData = data; // Store all well data
                         displayWellData(data);
                         displayLastSixWellData(data);
+
+                        // After displaying the data, check if this well already has an accepted value for this month
+                        checkExistingMonthlyRecords(wellID, month, year);
                     })
                     .catch(error => {
                         console.error('Error:', error);
@@ -130,11 +277,10 @@
                     });
             }
 
-                        function displayWellData(data) {
+            function displayWellData(data) {
                 if (data && data.length > 0) {
                     let tableHTML = `
-                        <br>
-                        <h3>Info: This is a Gas Lift   Well Data for <b>${data[0].well_name}</b></h3>
+                        <h3>Info: This is a Gas Lift Well Data for <b>${data[0].well_name}</b></h3>
                         <p class="header">Found ${data.length} record(s):</p>
                         <table border="1">
                             <thead>
@@ -214,6 +360,8 @@
                         </table>`;
 
                     document.getElementById("wellDetails").innerHTML = tableHTML;
+
+                    filterAcceptedValues();
                 } else {
                     document.getElementById("wellDetails").innerHTML = "<p class='header'>No data found for this Well ID.</p>";
                 }
@@ -225,6 +373,7 @@
                     let tableHTML = `
                         <br>
                         <p class="header">Last ${sliceOfData.length} records for <b>${data[0].well_name}</b>:</p>
+                        <div id="selectionStatus" class="status-message"></div>
                         <table border="1">
                             <thead>
                                 <tr>
@@ -240,7 +389,7 @@
                                     <th>GOR</th>
                                     <th>Avg Inj Gas Rate</th>
                                     <th>BSW</th>
-                                    <th>Select</th>
+                                    <th class="sticky-remove-button">Select</th>
                                 </tr>
                             </thead>
                             <tbody>`;
@@ -260,7 +409,7 @@
                                 <td>${record.gor}</td>
                                 <td>${record.avg_inj_gas_rate}</td>
                                 <td>${record.bsw}</td>
-                                <td><input type="radio" name="accepted_value" onchange="handleCheckboxChange(this, ${record.id})" />&nbsp;</td>
+                                <td class="sticky-remove-button"><input type="radio" name="accepted_value" onchange="handleRadioChange(this, ${record.id})" />&nbsp;</td>
                             </tr>`;
                     });
 
@@ -274,132 +423,334 @@
                 }
             }
 
-            function addRecordToBottomTable(record) {
-                // Check if the record is already in the bottom table
-                const existingRow = document.querySelector(`#selectedRecordsBody tr[data-id="${record.id}"]`);
-                if (existingRow) {
-                    return; // Record already exists in the table
-                }
-
-                // Create a new row for the bottom table
-                const newRow = document.createElement('tr');
-                newRow.setAttribute('data-id', record.id);
-
-                // Add cells with record data
-                newRow.innerHTML = `
-                    <td class="sticky-id">${record.id}</td>             
-                    <td>${record.well_name}</td>
-                    <td>${record.test_date}</td>
-                    <td>${record.prod_int}</td>
-                    <td>${record.test_type}</td>
-                    <td>${record.flow_type}</td>
-                    <td>${record.hours_tested}</td>
-                    <td>${record.avg_tbg_choke_64}</td>
-                    <td>${record.avg_csg_choke_64}</td>
-                    <td>${record.avg_thp_barg}</td>
-                    <td>${record.avg_tht_f}</td>
-                    <td>${record.avg_chp_barg}</td>
-                    <td>${record.avg_oil_m3_per_day}</td>
-                    <td>${record.avg_water_m3_per_day}</td>
-                    <td>${record.avg_gas_10_6_m3_per_day}</td>
-                    <td>${record.gor}</td>
-                    <td>${record.avg_inj_gas_rate}</td>
-                    <td>${record.oil_sg}</td>
-                    <td>${record.gas_sg}</td>
-                    <td>${record.oil_mt_per_day}</td>
-                    <td>${record.nacl_ppm}</td>
-                    <td>${record.bsw}</td>
-                    <td>${record.test_company}</td>
-                    <td>${record.rig_kit}</td>
-                    <td>${record.entered_by}</td>
-                    <td>${record.no_prod}</td>
-                    <td>${record.comments}</td>
-                    <td>${record.interval_top}</td>
-                    <td>${record.interval_bottom}</td>
-                    <td>${record.representative_ind}</td>
-                    <td><button onclick="removeRecord(${record.id})">Remove</button></td>
-                `;
-
-                // Add the new row to the table
-                document.getElementById('selectedRecordsBody').appendChild(newRow);
-            }
-
-            // Function to handle checkbox changes
-            function handleCheckboxChange(checkbox, recordId) {
-                if (checkbox.checked) {
+            // Function to handle radio button changes
+            function handleRadioChange(radio, recordId) {
+                if (radio.checked) {
                     // Find the record in the allWellData array
                     const record = allWellData.find(r => r.id === recordId);
                     if (record) {
-                        addRecordToAcceptedValueTable(record);
+                        // Then save to the database
+                        saveAcceptedValue(recordId);
                     }
                 }
             }
 
-            // Function to add a record to the bottom table
-            function addRecordToAcceptedValueTable(record) {
-                // Check if the record is already in the bottom table
-                const newRow = document.createElement('tr');
-                const existingRow = document.querySelector(`#selectedRecordsBody tr[data-id="${record.id}"]`);
-                if (existingRow) {
-                    return; // Record already exists in the table
+            // Function to save the record to the AcceptedValues table
+            function saveAcceptedValue(recordId) {
+                // Display a loading message
+                const statusElement = document.getElementById('selectionStatus');
+                statusElement.innerHTML = `<p>Saving record ${recordId} to database...</p>`;
+                statusElement.className = "status-message loading";
+
+                fetch(`?handler=SaveAcceptedValue&recordId=${recordId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            statusElement.innerHTML = `<p>${data.message}</p>`;
+                            statusElement.className = "status-message success";
+
+                            // After successful save, load the AcceptedValues table content
+                            loadAcceptedValues();
+                        } else {
+                            statusElement.innerHTML = `<p>Error: ${data.message}</p>`;
+                            statusElement.className = "status-message error";
+                        }
+                    })
+                    .catch(error => {
+                        statusElement.innerHTML = `<p>Error: ${error.message}</p>`;
+                        statusElement.className = "status-message error";
+                        console.error('Error:', error);
+                    });
+            }
+
+            function loadAcceptedValues() {
+                const wellID = document.getElementById("wellID").value;
+                if (!wellID && document.getElementById("selectedRecordsTable").style.display === "none") {
+                    return;
                 }
 
-                // Create a new row for the bottom table
-                newRow.setAttribute('data-id', record.id);
+                // Show a loading indicator
+                document.getElementById("selectedRecordsTable").innerHTML = "<p>Loading accepted values...</p>";
+                document.getElementById("selectedRecordsTable").style.display = "block";
 
-                // Add cells with record data
-                newRow.innerHTML = `
-                    <td class="sticky-id">${record.id}</td>
-                    <td>${record.well_name}</td>
-                    <td>${record.test_date}</td>
-                    <td>${record.prod_int}</td>
-                    <td>${record.test_type}</td>
-                    <td>${record.flow_type}</td>
-                    <td>${record.hours_tested}</td>
-                    <td>${record.avg_tbg_choke_64}</td>
-                    <td>${record.avg_csg_choke_64}</td>
-                    <td>${record.avg_thp_barg}</td>
-                    <td>${record.avg_tht_f}</td>
-                    <td>${record.avg_chp_barg}</td>
-                    <td>${record.avg_oil_m3_per_day}</td>
-                    <td>${record.avg_water_m3_per_day}</td>
-                    <td>${record.avg_gas_10_6_m3_per_day}</td>
-                    <td>${record.gor}</td>
-                    <td>${record.avg_inj_gas_rate}</td>
-                    <td>${record.oil_sg}</td>
-                    <td>${record.gas_sg}</td>
-                    <td>${record.oil_mt_per_day}</td>
-                    <td>${record.nacl_ppm}</td>
-                    <td>${record.bsw}</td>
-                    <td>${record.test_company}</td>
-                    <td>${record.rig_kit}</td>
-                    <td>${record.entered_by}</td>
-                    <td>${record.no_prod}</td>
-                    <td>${record.comments}</td>
-                    <td>${record.interval_top}</td>
-                    <td>${record.interval_bottom}</td>
-                    <td>${record.representative_ind}</td>
-                    <td><button onclick="removeRecord(${record.id})">Remove</button></td>
-                `;
+                fetch(`?handler=GetAcceptedValues&wellID=${wellID}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data || data.error) {
+                            // Handle error
+                            const errorMessage = data && data.message ? data.message : "No data available";
+                            document.getElementById("selectedRecordsTable").innerHTML =
+                                `<p>Error loading accepted values: ${errorMessage}</p>`;
+                            return;
+                        }
 
-                // Add the new row to the table
-                document.getElementById('selectedRecordsBody').appendChild(newRow);
+                        // Check if it's an empty array
+                        if (Array.isArray(data) && data.length === 0) {
+                            document.getElementById("selectedRecordsTable").innerHTML =
+                                "<p>No accepted values found. Select a well and choose a record to add.</p>";
+                            return;
+                        }
+
+                        displayAcceptedValues(data);
+                    })
+                    .catch(error => {
+                        console.error('Error loading accepted values:', error);
+                        document.getElementById("selectedRecordsTable").innerHTML =
+                            `<p>Error loading accepted values: ${error.message}</p>`;
+                    });
+            }
+
+            function displayAcceptedValues(data) {
+                // Check if data is valid and convert to array if needed
+                let recordsArray = [];
+
+                if (data) {
+                    // Handle different possible data structures
+                    if (Array.isArray(data)) {
+                        recordsArray = data;
+                    } else if (data.hasOwnProperty('error')) {
+                        document.getElementById("selectedRecordsTable").innerHTML =
+                            `<p>Error: ${data.message || 'Unknown error occurred'}</p>`;
+                        return;
+                    } else if (typeof data === 'object') {
+                        // Try to extract array data from the object
+                        for (const key in data) {
+                            if (Array.isArray(data[key])) {
+                                recordsArray = data[key];
+                                break;
+                            }
+                        }
+
+                        // If no array found, convert object values to array if possible
+                        if (recordsArray.length === 0 && Object.keys(data).length > 0) {
+                            recordsArray = [data]; // Treat single object as an array with one item
+                        }
+                    }
+                }
+
+                if (!recordsArray || recordsArray.length === 0) {
+                    document.getElementById("selectedRecordsTable").innerHTML =
+                        "<p>No accepted values found.</p>";
+                    return;
+                }
+
+                let tableHTML = `
+                    <h3>Accepted Values</h3>
+                    <br/>
+                    <table id="bottomTable" border="1">
+                        <thead>
+                            <tr>
+                                <th class="sticky-id-header">PAID</th>
+                                <th>Well Name</th> 
+                                <th>Well Type</th>
+                                <th>Days On</th>
+                                <th>Flowing To</th>
+                                <th>Choke</th>
+                                <th>THP</th>
+                                <th>Qo</th>
+                                <th>GOR</th>
+                                <th>AvgQgInj</th>
+                                <th>BSW</th>
+                                <th>SG</th>
+                                <th>Qg</th>
+                                <th>CHP</th>
+                                <th>CsgChk</th>
+                                <th class="sticky-remove-button">Remove</th>
+                            </tr>
+                        </thead>
+                        <tbody id="selectedRecordsBody">`;
+
+                // Loop through all records and add a row for each one
+                recordsArray.forEach(record => {
+                    // Format test_date for display
+                    const testDate = record.test_date ? new Date(record.test_date).toLocaleDateString() : "";
+
+                    // Check if paid exists and display it correctly
+                    const paidValue = record.paid !== undefined ? record.paid :
+                                     (record.PAID !== undefined ? record.PAID : "N/A");
+
+                    tableHTML += `
+                        <tr data-id="${record.id}">
+                            <td class="sticky-id">${paidValue}</td>
+                            <td>${record.well_name}</td>
+                            <td>${record.well_type}</td>
+                            <td>${record.daysOn !== undefined ? record.daysOn : (record.DaysOn !== undefined ? record.DaysOn : "0")}</td>
+                            <td>${record.flow_type}</td>
+                            <td>${record.avg_tbg_choke_64}</td>
+                            <td>${record.avg_thp_barg}</td>
+                            <td>${record.oil_mt_per_day}</td>
+                            <td>${record.gor}</td>
+                            <td>${record.avg_inj_gas_rate}</td>
+                            <td>${record.bsw}</td>
+                            <td>${record.oil_sg}</td>
+                            <td>${record.qg}</td>
+                            <td>${record.avg_chp_barg}</td>
+                            <td>${record.avg_csg_choke_64}</td>
+                            <td class="sticky-remove-button"><button onclick="removeAcceptedValue(${record.id})">Remove</button></td>
+                        </tr>`;
+                });
+
+                tableHTML += `
+                        </tbody>
+                    </table>`;
+
+                document.getElementById("selectedRecordsTable").innerHTML = tableHTML;
             }
 
             // Function to remove a record from the bottom table
-            function removeRecord(recordId) {
-                const rowToRemove = document.querySelector(`#selectedRecordsBody tr[data-id="${recordId}"]`);
-                if (rowToRemove) {
-                    rowToRemove.remove();
-
-                    // Uncheck the corresponding checkbox in the last six records table if it exists
-                    const checkbox = document.querySelector(`#lastSixWellDetails tr[data-id="${recordId}"] input[type="checkbox"]`);
-                    if (checkbox) {
-                        checkbox.checked = false;
-                    }
+            function removeAcceptedValue(recordId) {
+                if (confirm("Are you sure you want to remove this record from Accepted Values?")) {
+                    fetch(`?handler=RemoveAcceptedValue&recordId=${recordId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Reload the table after successful removal
+                                loadAcceptedValues();
+                            } else {
+                                alert(`Error: ${data.message}`);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert(`Error removing record: ${error.message}`);
+                        });
                 }
             }
+
+            function filterAcceptedValues() {
+                const wellID = document.getElementById("wellID").value;
+                if (!wellID) {
+                    alert("Please select a well first");
+                    return;
+                }
+
+                // Show loading indicator
+                document.getElementById("selectedRecordsTable").innerHTML = "<p>Loading filtered values...</p>";
+                document.getElementById("selectedRecordsTable").style.display = "block";
+
+                const month = currentDate.getMonth() + 1; // JavaScript months are 0-based
+                const year = currentDate.getFullYear();
+
+                fetch(`?handler=GetAcceptedValues&wellID=${wellID}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Convert data to array if needed
+                        let recordsArray = [];
+
+                        if (data) {
+                            if (Array.isArray(data)) {
+                                recordsArray = data;
+                            } else if (typeof data === 'object') {
+                                // Try to extract array data from the object
+                                for (const key in data) {
+                                    if (Array.isArray(data[key])) {
+                                        recordsArray = data[key];
+                                        break;
+                                    }
+                                }
+
+                                // If no array found, convert object values to array if possible
+                                if (recordsArray.length === 0 && Object.keys(data).length > 0) {
+                                    recordsArray = [data]; // Treat single object as an array with one item
+                                }
+                            }
+                        }
+
+                        // Filter data to only show records from the current month/year
+                        const filteredData = data.filter(record => {
+                            if (record.test_date) {
+                                const recordDate = new Date(record.test_date);
+                                return recordDate.getMonth() + 1 === month &&
+                                       recordDate.getFullYear() === year;
+                            }
+                            return false;
+                        });
+                        displayAcceptedValues(filteredData);
+                    })
+                    .catch(error => {
+                        console.error('Error loading accepted values:', error);
+                        document.getElementById("selectedRecordsTable").innerHTML =
+                            `<p>Error loading accepted values: ${error.message}</p>`;
+                    });
+            }
+
+            function updateAllDaysOn() {
+                if (confirm("Are you sure you want to update all DaysOn values? This may take a moment.")) {
+                    const statusElement = document.getElementById('selectionStatus');
+                    if (statusElement) {
+                        statusElement.innerHTML = `<p>Updating all DaysOn values, please wait...</p>`;
+                        statusElement.className = "status-message loading";
+                    }
+
+                    fetch(`?handler=UpdateAllDaysOn`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                if (statusElement) {
+                                    statusElement.innerHTML = `<p>${data.message}</p>`;
+                                    statusElement.className = "status-message success";
+                                } else {
+                                    alert(data.message);
+                                }
+
+                                // Reload the table after successful update
+                                loadAcceptedValues();
+                            } else {
+                                if (statusElement) {
+                                    statusElement.innerHTML = `<p>Error: ${data.message}</p>`;
+                                    statusElement.className = "status-message error";
+                                } else {
+                                    alert(`Error: ${data.message}`);
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            if (statusElement) {
+                                statusElement.innerHTML = `<p>Error updating DaysOn values: ${error.message}</p>`;
+                                statusElement.className = "status-message error";
+                            } else {
+                                alert(`Error updating DaysOn values: ${error.message}`);
+                            }
+                        });
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                // Hide the AcceptedValues table initially
+                document.getElementById("selectedRecordsTable").style.display = "none";
+            });
         </script>
     </div>
+
+    <button id="goUpBtn" title="Go to top">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+            <path fill-rule="evenodd" d="M11.47 3.97a.75.75 0 011.06 0l7.5 7.5a.75.75 0 11-1.06 1.06L12 5.06l-6.97 6.97a.75.75 0 01-1.06-1.06l7.5-7.5zM3 10.5a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 10.5zM2.25 14.25a.75.75 0 01.75-.75h18a.75.75 0 010 1.5H3a.75.75 0 01-.75-.75zM3 17.25a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 17.25z" clip-rule="evenodd" />
+        </svg>
+    </button>
+
+    <script>
+        // Get the button element
+        let goUpBtn = document.getElementById("goUpBtn");
+
+        // When the user scrolls down 20px from the top of the document, show the button
+        window.onscroll = function() {scrollFunction()};
+
+        function scrollFunction() {
+          if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+            goUpBtn.style.display = "block";
+          } else {
+            goUpBtn.style.display = "none";
+          }
+        }
+
+        // When the user clicks on the button, scroll to the top of the document smoothly
+        goUpBtn.addEventListener("click", function() {
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        });
+    </script>
 </body>
 </html>

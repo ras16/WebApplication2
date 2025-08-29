@@ -23,3 +23,79 @@
     text-align:center;
 }
 
+.header-menu {
+    display: flex;
+    justify-content: flex-start; /* Distribute items evenly */
+    align-items: center; /* Vertically center items */
+    background-color: #f3f4f6; /* Light background */
+    padding: 16px 20px; /* Padding: top-bottom, left-right */
+    border-bottom: 1px solid #e5e7eb; /* тонкая граница */
+}
+
+.menu-area {
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Center items horizontally */
+    margin: 0 10px; /* Add some horizontal margin between areas */
+}
+
+.menu-area-title {
+    margin-top: 6px; /* Space between buttons and title */
+    color: #4b5563; /* текст заголовка */
+    font-weight: 500;
+    font-size: 14px; /* уменьшил размер шрифта заголовка */
+}
+
+.menu-button {
+    display: flex;
+    flex-direction: column; /* Stack image and text vertically */
+    align-items: center; /* Center items horizontally */
+    justify-content: center; /* Vertically center content */
+    padding: 8px 12px; /* Padding внутри кнопки */
+    border-radius: 6px; /* Rounded corners */
+    background-color: transparent; /* No background color */
+    cursor: pointer; /* Show a pointer on hover */
+    transition: background-color 0.3s ease; /* Smooth transition */
+    border: none; /* Remove the default button border */
+    outline: none; /* Remove the outline */
+}
+
+    .menu-button:hover {
+        background-color: #e0e0e0; /* Light background on hover */
+    }
+
+    .menu-button.active {
+        background-color: #e0e0e0;
+        color: black;
+    }
+
+    .menu-button img {
+        width: 1.5vw;
+        height: auto;
+        margin-bottom: 6px; /* Space between image and text */
+    }
+
+    .menu-button span {
+        font-size: 12px; /* Text size */
+        color: #4b5563;
+    }
+
+.separator {
+    border-left: 1px solid grey; /* Vertical line style */
+    height: 80px; /* Height of the separator */
+    margin: 0 10px; /* Add horizontal margin around the separator */
+}
+
+.header-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+/*.dropdown-menu li.active > a {
+    background-color: #337ab7;
+    color: white;
+}
+
+.dropdown-menu li.active > a:hover {
+    background-color: #286090;
+}*/

@@ -1,0 +1,620 @@
+﻿@page
+@model WebApplication2.Pages.Calculation1
+@{
+    ViewData["Title"] = "Gas Production Summary";
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gas Production Summary</title>
+    <link rel="stylesheet" href="~/css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Add jsPDF library for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2 class="my-4">Gas Production Calculations</h2>
+
+        <!-- Month-Year Picker Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Select Month</h5>
+            </div>
+            <div class="card-body">
+                <form id="dateFilterForm" class="date-input-row">
+                    <div class="form-group month-picker">
+                        <button type="button" class="btn" onclick="changeMonth(-1)">
+                            Previous
+                        </button>
+                        <div class="month-display" id="monthDisplay" onclick="toggleCalendar()"></div>
+                        <button type="button" class="btn" onclick="changeMonth(1)">
+                            Next
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <button id="refreshData" type="button" class="btn">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh Data
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Calendar Popup -->
+                <div class="calendar" id="calendar">
+                    <div class="calendar-header">
+                        <button class="btn" onclick="changeCalendarYear(-1)">
+                            Previous Year
+                        </button>
+                        <div class="year-display" id="yearDisplay"></div>
+                        <button class="btn" onclick="changeCalendarYear(1)">
+                            Next Year
+                        </button>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Month cells will be inserted here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Message != null)
+        {
+            <div class="alert @(Model.IsSuccess ? "alert-success" : "alert-danger")">
+                @Model.Message
+            </div>
+        }
+
+        <br />
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4>Calculations Data</h4>
+                <!-- Download PDF Button moved to table header -->
+                <button id="downloadPDF" type="button" class="btn btn-success" @(Model.CalculationsData == null || !Model.CalculationsData.Any() ? "disabled" : "")>
+                    <i class="bi bi-download"></i> Download PDF
+                </button>
+            </div>
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="calculationsTable">
+                        <thead>
+                            <tr>
+                                <th title="ExportGas Sum">ExportGas Σ</th>
+                                <th title="ExportGas divided by 1000">ExportGas (k)</th>
+                                <th title="FlaredGas Sum">FlaredGas Σ</th>
+                                <th title="FlaredGas divided by 1000">FlaredGas (k)</th>
+                                <th title="HPGas Sum">HPGas Σ</th>
+                                <th title="HPGasFlow divided by 1000">HPGas (k)</th>
+                                <th title="CompGasRate Sum">CompGasRate Σ</th>
+                                <th title="CompressorGasRate divided by 1000">CompGasRate (k)</th>
+                                <th title="CompFuelGas Sum">CompFuelGas Σ</th>
+                                <th title="CompFuelGas divided by 1000">CompFuelGas (k)</th>
+                                <th>Fuel</th>
+                                <th>QgInj</th>
+                                <th>QgTotal</th>
+                                <th>Total Burun</th>
+                                <th>Reservoir</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                @if (Model.CalculationsData != null && Model.CalculationsData.Any())
+                                {
+                                    <td>@Model.exportGasSum.ToString($"N{2}")</td>
+                                    <td>@Model.exportGasK.ToString($"N{2}")</td>
+                                    <td>@Model.flaredGasSum.ToString($"N{2}")</td>
+                                    <td>@Model.flaredGasK.ToString($"N{2}")</td>
+                                    <td>@Model.hpGasFlowSum.ToString($"N{2}")</td>
+                                    <td>@Model.hpGasFlowK.ToString($"N{2}")</td>
+                                    <td>@Model.compGasRateSum.ToString($"N{2}")</td>
+                                    <td>@Model.compGasRateK.ToString($"N{2}")</td>
+                                    <td>@Model.compFuelGasSum.ToString($"N{2}")</td>
+                                    <td>@Model.compFuelGasK.ToString($"N{2}")</td>
+                                    <td>@Model.fuel.ToString($"N{2}")</td>
+                                    <td>@Model.QgInj.ToString($"N{2}")</td>
+                                    <td>@Model.QgTotal.ToString($"N{2}")</td>
+                                    <td>@Model.TotalBurun.ToString($"N{2}")</td>
+                                    <td>@Model.Reservoir.ToString($"N{2}")</td>
+                                }
+                                else
+                                {
+                                <tr>
+                                    <td colspan="15" class="text-center">No data available. Click "Refresh Data" to fetch from the database.</td>
+                                </tr>
+                                }
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="allocationTable">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Volumes to be matched (Mm3)</th>
+                                    <th>Volumes before allocation (Mm3)</th>
+                                    <th>First Difference</th>
+                                    <th>Matching Coefficients</th>
+                                    <th>Volumes after allocation (Mm3)</th>
+                                    <th>Final check</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.CalculationsData != null && Model.CalculationsData.Any())
+                                {
+                                    <tr>
+                                        <th>Gas Inj</th>
+                                        <td>@Model.gasInj.ToString($"N{2}")</td>
+                                        <td>@Model.TotalInjectionVolume.ToString($"N{2}")</td>
+                                        <td>@Model.GasInjFirstDiff.ToString($"N{2}")</td>
+                                        <td></td>
+                                        <td>@Model.IVAASum.ToString($"N{2}")</td>
+                                        <td>@Model.GasInjFinalCheck.ToString($"N{2}")</td>
+                                    </tr>
+                                    <tr>
+                                        <th>TOT Gas Prod LP</th>
+                                        <td>@Model.TotalBurun.ToString($"N{2}")</td>
+                                        <td>@Model.TOTGasProdLPForTOTGasProdVolume.ToString($"N{2}")</td>
+                                        <td>@Model.TOTGasProdLPFirstDiff.ToString($"N{2}")</td>
+                                        <td></td>
+                                        <td>@Model.TGPVAAPlainSumDiff.ToString($"N{2}")</td>
+                                        <td>@Model.TotalBurunFinalCheck.ToString($"N{2}")</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Res Gas Prod</th>
+                                        <td>@Model.Reservoir.ToString($"N{2}")</td>
+                                        <td>@Model.ReservoirGasProductionVolume.ToString($"N{2}")</td>
+                                        <td>@Model.ResGasProdFirstDiff.ToString($"N{2}")</td>
+                                        <td></td>
+                                        <td>@Model.RGPVAASum.ToString($"N{2}")</td>
+                                        <td>@Model.ReservoirFinalCheck.ToString($"N{2}")</td>
+                                    </tr>
+                                    <tr>
+                                        <th>GSW</th>
+                                        <td>@Model.hpGasFlowK.ToString($"N{2}")</td>
+                                        <td>@Model.ResGasProductionGSSum.ToString($"N{2}")</td>
+                                        <td>@Model.GSWFirstDiff.ToString($"N{2}")</td>
+                                        <td></td>
+                                        <td>@Model.TGPVAASumIfGS.ToString($"N{2}")</td>
+                                        <td>@Model.hpGasFlowKFinalCheck.ToString($"N{2}")</td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Associated gas = Res Gas Prod LP</th>
+                                        <td>@Model.AssociatedGas.ToString($"N{2}")</td>
+                                        <td>@Model.TOTGasProdLPForResGasProdVolume.ToString($"N{2}")</td>
+                                        <td>@Model.AssociatedGasTOTGasDifference.ToString($"N{2}")</td>
+                                        <td>@Model.AssociatedGasTOTGasDiv.ToString($"N{2}")</td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Res Gas NF = TOT Gas NF</th>
+                                        <td>@Model.ResGasNF.ToString($"N{2}")</td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <th>TOT Gas Prod GLW (to be distributed)</th>
+                                        <td>@Model.TOTGasProdGLW.ToString($"N{2}")</td>
+                                        <td>@Model.TOTGasProdGLWForTOTGasProdVolume.ToString($"N{2}")</td>
+                                        <td>@Model.TOTGasProdGLWDiff.ToString($"N{2}")</td>
+                                        <td>@Model.TOTGasProdGLWDiv.ToString($"N{2}")</td>
+                                        <td>@Model.TGPVAASumIfGLW.ToString($"N{2}")</td>
+                                        <td>@Model.TOTGasProdGLWDiffIfGLW.ToString($"N{2}")</td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="7" class="text-center">No data available. Click "Refresh Data" to fetch from the database.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="calculations_table"></div>
+
+            </div>
+
+            @section Scripts {
+                <script>
+                    $(document).ready(function() {
+                        // Initialize month picker
+                        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                        let currentDate = new Date();
+                        let calendarDate = new Date(); // Separate date for the calendar display
+
+                        // Check URL parameters for initial date values
+                        function getUrlParameter(name) {
+                            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+                            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+                            var results = regex.exec(location.search);
+                            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+                        }
+
+                        // If startDate parameter exists, use it to set currentDate
+                        const startDateParam = getUrlParameter('startDate');
+                        if (startDateParam) {
+                            const paramDate = new Date(startDateParam);
+                            if (!isNaN(paramDate.getTime())) { // Check if valid date
+                                currentDate = paramDate;
+                                calendarDate = new Date(currentDate);
+                            }
+                        }
+
+                        const monthDisplay = document.getElementById("monthDisplay");
+                        const calendar = document.getElementById("calendar");
+                        const yearDisplay = document.getElementById("yearDisplay");
+                        const calendarGrid = document.getElementById("calendarGrid");
+
+                        // Initialize with appropriate month
+                        updateDisplay();
+                        calendar.style.display = "none";
+
+                        // Month display update function
+                        function updateDisplay() {
+                            monthDisplay.innerText = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+                        }
+
+                        // Change month with prev/next buttons
+                        window.changeMonth = function(step) {
+                            currentDate.setMonth(currentDate.getMonth() + step);
+                            calendarDate = new Date(currentDate); // Keep calendar in sync
+                            updateDisplay();
+                        }
+
+                        // Toggle calendar visibility
+                        window.toggleCalendar = function() {
+                            if (calendar.style.display === "none") {
+                                calendar.style.display = "block";
+
+                                const rect = monthDisplay.getBoundingClientRect();
+                                const calendarWidth = calendar.offsetWidth;
+                                const calendarHeight = calendar.offsetHeight;
+                                const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+                                const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+                                // Calculate position
+                                let calendarLeft = rect.left + (rect.width - calendarWidth) / 2;
+                                let calendarTop = rect.bottom + 10;
+
+                                // Adjust if off-screen
+                                if (calendarLeft < 0) {
+                                    calendarLeft = 10;
+                                } else if (calendarLeft + calendarWidth > viewportWidth) {
+                                    calendarLeft = viewportWidth - calendarWidth - 10;
+                                }
+
+                                if (calendarTop + calendarHeight > viewportHeight) {
+                                    calendarTop = rect.top - calendarHeight - 10;
+                                    if (calendarTop < 0) {
+                                        calendarTop = rect.bottom + 10;
+                                    }
+                                }
+
+                                calendar.style.top = `${calendarTop}px`;
+                                calendar.style.left = `${calendarLeft}px`;
+
+                                calendarDate = new Date(currentDate);
+                                updateCalendarHeader();
+                                updateCalendar();
+                            } else {
+                                calendar.style.display = "none";
+                            }
+                        }
+
+                        // Update calendar year display
+                        function updateCalendarHeader() {
+                            yearDisplay.innerText = `${calendarDate.getFullYear()}`;
+                        }
+
+                        // Change year in calendar
+                        window.changeCalendarYear = function(step) {
+                            calendarDate.setFullYear(calendarDate.getFullYear() + step);
+                            updateCalendarHeader();
+                            updateCalendar();
+                        }
+
+                        // Update calendar month grid
+                        function updateCalendar() {
+                            calendarGrid.innerHTML = ""; // Clear previous calendar
+
+                            // Add month cells
+                            monthNames.forEach((month, index) => {
+                                const monthCell = document.createElement("div");
+                                monthCell.classList.add("calendar-month");
+                                monthCell.innerText = month;
+
+                                // Highlight the currently selected month
+                                if (currentDate.getFullYear() === calendarDate.getFullYear() && currentDate.getMonth() === index) {
+                                    monthCell.classList.add("selected");
+                                }
+
+                                monthCell.addEventListener("click", () => {
+                                    currentDate = new Date(calendarDate.getFullYear(), index, 1); // Set day to 1st
+                                    updateDisplay();
+                                    calendar.style.display = "none"; // Hide calendar after selection
+                                });
+
+                                calendarGrid.appendChild(monthCell);
+                            });
+                        }
+
+                        // Close calendar when clicking outside
+                        $(document).on('click', function(event) {
+                            if (!$(event.target).closest('#calendar').length &&
+                                !$(event.target).closest('#monthDisplay').length) {
+                                calendar.style.display = "none";
+                            }
+                        });
+
+                        // When Refresh Data button is clicked
+                        $("#refreshData").click(function() {
+                            // Show loading indicator
+                            var button = $(this);
+                            button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
+                            button.prop('disabled', true);
+
+                            // Calculate first and last day of the selected month
+                            const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+                            const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+                            // Format dates for API
+                            const startDate = firstDay.toISOString();
+                            const endDate = lastDay.toISOString();
+
+                            // Get the anti-forgery token
+                            var token = $('input[name="__RequestVerificationToken"]').val();
+
+                            // Make the AJAX call with proper headers
+                            $.ajax({
+                                url: window.location.pathname + '?handler=RefreshData',
+                                type: 'POST',
+                                headers: {
+                                    'RequestVerificationToken': token
+                                },
+                                data: JSON.stringify({
+                                    startDate: startDate,
+                                    endDate: endDate
+                                }),
+                                contentType: 'application/json',
+                                success: function(result) {
+                                    console.log("Success:", result);
+                                    if (result.success) {
+                                        window.location.href = window.location.pathname +
+                                            '?startDate=' + startDate + '&endDate=' + endDate;
+                                    } else {
+                                        alert("Error: " + result.message);
+                                        button.html('<i class="bi bi-arrow-clockwise"></i> Refresh Data');
+                                        button.prop('disabled', false);
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error("Error details:", {
+                                        status: status,
+                                        error: error,
+                                        response: xhr.responseText
+                                    });
+                                    alert("Error refreshing data. Check console for details.");
+                                    button.html('<i class="bi bi-arrow-clockwise"></i> Refresh Data');
+                                    button.prop('disabled', false);
+                                }
+                            });
+                        });
+
+                        // PDF Download functionality
+                        $("#downloadPDF").click(function() {
+                            var button = $(this);
+
+                            // Check if data is available
+                            if ($('#calculationsTable tbody tr td').first().attr('colspan')) {
+                                alert('No data available to download. Please refresh data first.');
+                                return;
+                            }
+
+                            // Show loading state
+                            button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating PDF...');
+                            button.prop('disabled', true);
+
+                            try {
+                                // Get the current month/year for the title
+                                const currentMonthYear = monthDisplay.innerText;
+
+                                // Initialize jsPDF
+                                const { jsPDF } = window.jspdf;
+                                const pdf = new jsPDF('l', 'mm', 'a4'); // landscape orientation
+
+                                // Add title
+                                pdf.setFontSize(16);
+                                pdf.text('Gas Production Calculations Report', 14, 15);
+                                pdf.setFontSize(12);
+                                pdf.text(`Period: ${currentMonthYear}`, 14, 25);
+                                pdf.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 32);
+
+                                // Extract data from the first table (Calculations Data)
+                                const calcHeaders = [];
+                                const calcData = [];
+
+                                // Get headers from first table
+                                $('#calculationsTable thead tr th').each(function() {
+                                    calcHeaders.push($(this).text().trim());
+                                });
+
+                                // Get data from first table
+                                const calcRow = [];
+                                $('#calculationsTable tbody tr:first td').each(function() {
+                                    if (!$(this).attr('colspan')) {
+                                        calcRow.push($(this).text().trim());
+                                    }
+                                });
+                                if (calcRow.length > 0) {
+                                    calcData.push(calcRow);
+                                }
+
+                                // Add first table to PDF
+                                if (calcData.length > 0) {
+                                    pdf.autoTable({
+                                        head: [calcHeaders],
+                                        body: calcData,
+                                        startY: 40,
+                                        styles: { fontSize: 8, cellPadding: 2 },
+                                        headStyles: { fillColor: [52, 58, 64], textColor: 255 },
+                                        columnStyles: {
+                                            0: { cellWidth: 15 }, 1: { cellWidth: 15 }, 2: { cellWidth: 15 },
+                                            3: { cellWidth: 15 }, 4: { cellWidth: 15 }, 5: { cellWidth: 15 },
+                                            6: { cellWidth: 15 }, 7: { cellWidth: 15 }, 8: { cellWidth: 15 },
+                                            9: { cellWidth: 15 }, 10: { cellWidth: 15 }, 11: { cellWidth: 15 },
+                                            12: { cellWidth: 15 }, 13: { cellWidth: 15 }, 14: { cellWidth: 15 }
+                                        },
+                                        margin: { left: 14, right: 14 }
+                                    });
+                                }
+
+                                // Extract data from the second table (Allocation Data)
+                                const allocHeaders = [];
+                                const allocData = [];
+
+                                // Get headers from second table
+                                $('#allocationTable thead tr th').each(function() {
+                                    allocHeaders.push($(this).text().trim());
+                                });
+
+                                // Get data from second table
+                                $('#allocationTable tbody tr').each(function() {
+                                    const row = [];
+                                    let hasData = false;
+                                    $(this).find('td, th').each(function() {
+                                        if (!$(this).attr('colspan')) {
+                                            const cellText = $(this).text().trim();
+                                            row.push(cellText);
+                                            if (cellText && cellText !== '') {
+                                                hasData = true;
+                                            }
+                                        }
+                                    });
+                                    if (hasData && row.length > 0) {
+                                        allocData.push(row);
+                                    }
+                                });
+
+                                // Add second table to PDF if we have data
+                                if (allocData.length > 0) {
+                                    const finalY = pdf.lastAutoTable ? pdf.lastAutoTable.finalY : 80;
+
+                                    pdf.setFontSize(14);
+                                    pdf.text('Volume Allocation Analysis', 14, finalY + 15);
+
+                                    pdf.autoTable({
+                                        head: [allocHeaders],
+                                        body: allocData,
+                                        startY: finalY + 25,
+                                        styles: { fontSize: 8, cellPadding: 3 },
+                                        headStyles: { fillColor: [52, 58, 64], textColor: 255 },
+                                        columnStyles: {
+                                            0: { cellWidth: 40, fontStyle: 'bold' },
+                                            1: { cellWidth: 35 }, 2: { cellWidth: 35 }, 3: { cellWidth: 25 },
+                                            4: { cellWidth: 30 }, 5: { cellWidth: 35 }, 6: { cellWidth: 25 }
+                                        },
+                                        margin: { left: 14, right: 14 }
+                                    });
+                                }
+
+                                // Save the PDF
+                                const filename = `Gas_Production_Report_${currentMonthYear.replace(' ', '_')}_${new Date().getFullYear()}.pdf`;
+                                pdf.save(filename);
+
+                                // Reset button state
+                                button.html('<i class="bi bi-download"></i> Download PDF');
+                                button.prop('disabled', false);
+
+                            } catch (error) {
+                                console.error('Error generating PDF:', error);
+                                alert('Error generating PDF. Please try again.');
+
+                                // Reset button state
+                                button.html('<i class="bi bi-download"></i> Download PDF');
+                                button.prop('disabled', false);
+                            }
+                        });
+                    });
+                </script>
+
+                @* Include the anti-forgery token *@
+                @Html.AntiForgeryToken()
+            }
+
+            <button id="goUpBtn" title="Go to top">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                    <path fill-rule="evenodd" d="M11.47 3.97a.75.75 0 011.06 0l7.5 7.5a.75.75 0 11-1.06 1.06L12 5.06l-6.97 6.97a.75.75 0 01-1.06-1.06l7.5-7.5zM3 10.5a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 10.5zM2.25 14.25a.75.75 0 01.75-.75h18a.75.75 0 010 1.5H3a.75.75 0 01-.75-.75zM3 17.25a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 17.25z" clip-rule="evenodd" />
+                </svg>
+            </button>
+
+            <script>
+                // Get the button element
+                let goUpBtn = document.getElementById("goUpBtn");
+
+                // When the user scrolls down 20px from the top of the document, show the button
+                window.onscroll = function() {scrollFunction()};
+
+                function scrollFunction() {
+                  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                    goUpBtn.style.display = "block";
+                  } else {
+                    goUpBtn.style.display = "none";
+                  }
+                }
+
+                // When the user clicks on the button, scroll to the top of the document smoothly
+                goUpBtn.addEventListener("click", function() {
+                  window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                  });
+                });
+            </script>
+
+</body>
+</html>

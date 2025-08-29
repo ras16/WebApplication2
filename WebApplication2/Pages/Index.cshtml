@@ -1,179 +1,621 @@
-@page
+﻿@page
 @model IndexModel
 
 @{
     ViewData["Title"] = "Home page";
 }
-
 <!DOCTYPE html>
-
 <html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Data Entry Form</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <head>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #2d3748;
+            line-height: 1.6;
+            min-height: 100vh;
+            /* padding: 30px 20px; */
+        }
 
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Production Data Entry Form</title>
-        <link rel="stylesheet" href="~/css/style.css"/>
-    </head>
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
 
-    <body>
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            /* padding: 35px 40px; */
+            position: relative;
+            overflow: hidden;
+        }
 
+            .header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+                transform: translateX(-100%);
+                animation: shimmer 3s infinite;
+            }
+
+        @@keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 45px;
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 30px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+            .section:last-child {
+                margin-bottom: 0;
+            }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            width: 24px;
+            height: 24px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+            .form-group label {
+                display: block;
+                font-size: 14px;
+                font-weight: 600;
+                color: #374151;
+                margin-bottom: 8px;
+                transition: color 0.2s ease;
+            }
+
+        .required {
+            color: #ef4444;
+            margin-left: 3px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            background: #ffffff;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+        }
+
+            .form-group input:focus,
+            .form-group select:focus,
+            .form-group textarea:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+                transform: translateY(-2px);
+            }
+
+            .form-group input:hover,
+            .form-group select:hover {
+                border-color: #9ca3af;
+                transform: translateY(-1px);
+            }
+
+        .form-group select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 15px center;
+            background-repeat: no-repeat;
+            background-size: 16px;
+            padding-right: 45px;
+            appearance: none;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-actions {
+            margin-top: 40px;
+            padding: 30px 40px;
+            background: #f8fafc;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+                transition: left 0.5s ease;
+            }
+
+            .btn:hover::before {
+                left: 100%;
+            }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            }
+
+        .btn-secondary {
+            background: #ffffff;
+            color: #374151;
+            border-color: #d1d5db;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+            .btn-secondary:hover {
+                background: #f9fafb;
+                border-color: #9ca3af;
+                transform: translateY(-1px);
+            }
+
+        .view-link {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+            .view-link:hover {
+                background: #059669;
+                border-color: #059669;
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+            }
+
+        .unit-hint {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 400;
+            margin-left: 4px;
+        }
+
+        @@media (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            .container {
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 30px 25px;
+            }
+
+                .header h2 {
+                    font-size: 26px;
+                }
+
+            .form-container {
+                padding: 30px 25px;
+            }
+
+            .section {
+                padding: 25px 20px;
+            }
+
+            .grid-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .form-actions {
+                padding: 25px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+        .success-notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: #10b981;
+            color: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            transform: translateX(400px);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            font-weight: 500;
+        }
+
+            .success-notification.show {
+                transform: translateX(0);
+            }
+
+        .floating-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite;
+        }
+
+            .shape:nth-child(1) {
+                width: 60px;
+                height: 60px;
+                top: 20%;
+                left: 10%;
+                animation-delay: 0s;
+            }
+
+            .shape:nth-child(2) {
+                width: 40px;
+                height: 40px;
+                top: 50%;
+                right: 15%;
+                animation-delay: 3s;
+            }
+
+            .shape:nth-child(3) {
+                width: 80px;
+                height: 80px;
+                bottom: 30%;
+                left: 20%;
+                animation-delay: 6s;
+            }
+
+        @@keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+                opacity: 0.4;
+            }
+
+            50% {
+                transform: translateY(-30px) rotate(180deg);
+                opacity: 0.7;
+            }
+        }</style>
+</head>
+<body>
     <div class="container">
-        <h2>Data Entry Form</h2>
+        <div class="header">
+            <div class="floating-shapes">
+                <div class="shape"></div>
+                <div class="shape"></div>
+                <div class="shape"></div>
+            </div>
+            <div class="header-content">
+                <h2>Production Data Entry Form</h2>
+                <p>Daily production monitoring and reporting system</p>
+            </div>
+        </div>
 
         <form method="post" class="form-container">
-
-            <div class="grid-container">
-
-                <div class="form-group">
-
-                    <label for="prod_area_id">Select the Production Field:</label>
-
-                    <select name="prod_area_id" id="prod_area_id">
-                        <option value="1">Burun Field</option>
-                        <option value="3">Ne Burun Field</option>
-                    </select>
-
-                    <br><br>
-
-                </div>
-
-                <div class="form-group">
-                    <label for="Date">Date:</label>
-                    <input type="date" id="Date" name="Date" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="DayInMonth">Day in Month:</label>
-                    <input type="number" id="DayInMonth" name="DayInMonth" min="1" max="31" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="SPPFluid">SPP Fluid Flow Temp. (m<sup>3</sup>/d)</label>
-                    <input type="number" step="any" id="SPPFluid" name="SPPFluid" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="SPPOil">SPP Oil (MT/d):</label>
-                    <input type="number" step="any" id="SPPOil" name="SPPOil" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="CorrFact">Correction Factor:</label>
-                    <input type="number" step="any" id="CorrFact" name="CorrFact" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="AvgBSW">Avg. BS&W:</label>
-                    <input type="number" step="any" id="AvgBSW" name="AvgBSW" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="AvgBSWSPP">Avg. BSW&SPP:</label>
-                    <input type="number" step="any" id="AvgBSWSPP" name="AvgBSWSPP" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="VolRedFact">Volume Reduction Factor:</label>
-                    <input type="number" step="any" id="VolRedFact" name="VolRedFact" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="SPPFlTemp">SPP Flow Temp. (<sup>o</sup>C):</label>
-                    <input type="number" step="any" id="SPPFlTemp" name="SPPFlTemp" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="OilDens">Oil Density 15.56 <sup>o</sup>C (g/cc):</label>
-                    <input type="number" step="any" id="OilDens" name="OilDens" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="OilDelTNT">Oil Delivered on TNT Today (MT):</label>
-                    <input type="number" step="any" id="OilDelTNT" name="OilDelTNT" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="MthOilIPR">MthOilIPR:</label>
-                    <input type="number" step="any" id="MthOilIPR" name="MthOilIPR" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="DailyGasIPR">Daily Gas IPR:</label>
-                    <input type="number" step="any" id="DailyGasIPR" name="DailyGasIPR" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="AvailForLifting">Available For Liftings (MT):</label>
-                    <input type="number" step="any" id="AvailForLifting" name="AvailForLifting" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="LiftedToday">Lifted Today (MT):</label>
-                    <input type="number" step="any" id="LiftedToday" name="LiftedToday" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="LiftPort">Lifting Port:</label>
-                    <input type="number" step="any" id="LiftPort" name="LiftPort" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="FlaredGas">Flared Gas (m<sup>3</sup>/d):</label>
-                    <input type="number" step="any" id="FlaredGas" name="FlaredGas" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="ExportGas">Export Gas (m<sup>3</sup>/d):</label>
-                    <input type="number" step="any" id="ExportGas" name="ExportGas" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="SPPTotGas">SPP Total Gas (m<sup>3</sup>/d):</label>
-                    <input type="number" step="any" id="SPPTotGas" name="SPPTotGas" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="NewOil">New Oil (Daily MT):</label>
-                    <input type="number" step="any" id="NewOil" name="NewOil" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="AvgVishkaOil">Avg. Vishka Oil (MT/d):</label>
-                    <input type="number" step="any" id="AvgVishkaOil" name="AvgVishkaOil" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="VishkaInletPress">Vishka Inlet Pressure (bar):</label>
-                    <input type="number" step="any" id="VishkaInletPress" name="VishkaInletPress" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="LPWaterInj">LP Water Injected (m<sup>3</sup>/d):</label>
-                    <input type="number" step="any" id="LPWaterInj" name="LPWaterInj" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="HPWaterInj">HP Water Injected (m<sup>3</sup>/d):</label>
-                    <input type="number" step="any" id="HPWaterInj" name="HPWaterInj" required><br><br>
-                </div>
-
-                <div class="form-group">
-                    <label for="WaterDisposed">Water Disposed (m<sup>3</sup>/d):</label>
-                    <input type="number" step="any" id="WaterDisposed" name="WaterDisposed" required><br><br>
+            <div class="section">
+                <h3 class="section-title">
+                    <span class="section-icon">1</span>
+                    Basic Information
+                </h3>
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label for="prod_area_id">Select the Production Field <span class="required">*</span></label>
+                        <select name="prod_area_id" id="prod_area_id" required>
+                            @foreach (var item in Model.Prod_Areas_TBL)
+                            {
+                                <option value="@item.prod_area_id">@item.Prod_Area</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="Date">Date <span class="required">*</span></label>
+                        <input type="date" id="Date" name="Date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="DayInMonth">Day in Month <span class="required">*</span></label>
+                        <input type="number" id="DayInMonth" name="DayInMonth" min="1" max="31" required>
+                    </div>
                 </div>
             </div>
-            <label for="Comments">Comments:</label>
 
-            <textarea id="Comments" name="Comments" rows="4" cols="50"></textarea><br><br>
+            <div class="section">
+                <h3 class="section-title">
+                    <span class="section-icon">2</span>
+                    Production Rates
+                </h3>
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label for="SPPFluid">SPP Fluid Flow Temp. <span class="unit-hint">(m³/d)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="SPPFluid" name="SPPFluid" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="SPPOil">SPP Oil <span class="unit-hint">(MT/d)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="SPPOil" name="SPPOil" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="NewOil">New Oil <span class="unit-hint">(Daily MT)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="NewOil" name="NewOil" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="AvgVishkaOil">Avg. Vishka Oil <span class="unit-hint">(MT/d)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="AvgVishkaOil" name="AvgVishkaOil" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="OilDelTNT">Oil Delivered on TNT Today <span class="unit-hint">(MT)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="OilDelTNT" name="OilDelTNT" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="MthOilIPR">MthOilIPR <span class="required">*</span></label>
+                        <input type="number" step="any" id="MthOilIPR" name="MthOilIPR" required>
+                    </div>
+                </div>
+            </div>
 
-            <input type="submit" value="Submit">
+            <div class="section">
+                <h3 class="section-title">
+                    <span class="section-icon">3</span>
+                    Quality Parameters
+                </h3>
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label for="CorrFact">Correction Factor <span class="required">*</span></label>
+                        <input type="number" step="any" id="CorrFact" name="CorrFact" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="AvgBSW">Avg. BS&W <span class="required">*</span></label>
+                        <input type="number" step="any" id="AvgBSW" name="AvgBSW" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="AvgBSWSPP">Avg. BSW&SPP <span class="required">*</span></label>
+                        <input type="number" step="any" id="AvgBSWSPP" name="AvgBSWSPP" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="VolRedFact">Volume Reduction Factor <span class="required">*</span></label>
+                        <input type="number" step="any" id="VolRedFact" name="VolRedFact" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="SPPFlTemp">SPP Flow Temp. <span class="unit-hint">(°C)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="SPPFlTemp" name="SPPFlTemp" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="OilDens">Oil Density 15.56°C <span class="unit-hint">(g/cc)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="OilDens" name="OilDens" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">
+                    <span class="section-icon">4</span>
+                    Gas Production
+                </h3>
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label for="DailyGasIPR">Daily Gas IPR <span class="required">*</span></label>
+                        <input type="number" step="any" id="DailyGasIPR" name="DailyGasIPR" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="FlaredGas">Flared Gas <span class="unit-hint">(m³/d)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="FlaredGas" name="FlaredGas" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ExportGas">Export Gas <span class="unit-hint">(m³/d)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="ExportGas" name="ExportGas" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="SPPTotGas">SPP Total Gas <span class="unit-hint">(m³/d)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="SPPTotGas" name="SPPTotGas" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">
+                    <span class="section-icon">5</span>
+                    Lifting & Storage
+                </h3>
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label for="AvailForLifting">Available For Liftings <span class="unit-hint">(MT)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="AvailForLifting" name="AvailForLifting" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="LiftedToday">Lifted Today <span class="unit-hint">(MT)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="LiftedToday" name="LiftedToday" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="LiftPort">Lifting Port <span class="required">*</span></label>
+                        <input type="number" step="any" id="LiftPort" name="LiftPort" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="VishkaInletPress">Vishka Inlet Pressure <span class="unit-hint">(bar)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="VishkaInletPress" name="VishkaInletPress" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">
+                    <span class="section-icon">6</span>
+                    Water Management
+                </h3>
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label for="LPWaterInj">LP Water Injected <span class="unit-hint">(m³/d)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="LPWaterInj" name="LPWaterInj" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="HPWaterInj">HP Water Injected <span class="unit-hint">(m³/d)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="HPWaterInj" name="HPWaterInj" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="WaterDisposed">Water Disposed <span class="unit-hint">(m³/d)</span> <span class="required">*</span></label>
+                        <input type="number" step="any" id="WaterDisposed" name="WaterDisposed" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">
+                    <span class="section-icon">7</span>
+                    Additional Information
+                </h3>
+                <div class="grid-container">
+                    <div class="form-group full-width">
+                        <label for="Comments">Comments</label>
+                        <textarea id="Comments" name="Comments" rows="4" placeholder="Enter any additional notes or observations..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="/Results" class="btn view-link">View Full Table</a>
+                <div style="display: flex; gap: 15px;">
+                    <button type="button" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Data</button>
+                </div>
+            </div>
         </form>
-
-        <a href="/Results">View Full Table</a>  
     </div>
 
-    </body>
+    <div class="success-notification" id="notification">
+        ✓ Production data submitted successfully!
+    </div>
 
+    <script>
+        document.querySelector("form").addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            // Show success notification
+            const notification = document.getElementById('notification');
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+
+            console.log("Selected production area:", document.getElementById("prod_area_id").value);
+        });
+    </script>
+</body>
 </html>

@@ -1,115 +1,470 @@
-﻿/* CSS for Well Page */
-table {
-    margin-top: -20px;
-    width: 100%;
+﻿:root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --secondary: #f1f5f9;
+    --accent: #06b6d4;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --dark: #0f172a;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e1;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1e293b;
+    --gray-900: #0f172a;
+    --white: #ffffff;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --radius: 0.75rem;
+    --radius-sm: 0.375rem;
+    --radius-lg: 1rem;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+    color: var(--gray-900);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Header */
+.header {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 1.5rem 0;
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-size: 1rem;
+}
+
+.logo h1 {
+    font-size: 1 rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Main Container */
+.main-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    gap: 2rem;
+}
+
+/* Well Selection Card */
+.well-selection-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+}
+
+.card-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.select-group {
+    position: relative;
+    flex: 1;
+}
+
+.select-label {
     display: block;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 0.5rem;
+}
+
+.select-wrapper {
+    position: relative;
+}
+
+.select-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    padding-right: 2.5rem;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius);
+    font-size: 1.5rem;
+    background: var(--white);
+    color: var(--gray-900);
+    transition: all 0.2s ease;
+    appearance: none;
+}
+
+    .select-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
+    }
+
+.select-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+    pointer-events: none;
+    transition: transform 0.2s ease;
+}
+
+.select-input:focus + .select-icon {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* Modern Button */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius);
+    font-size: 1.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
+}
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-lg);
+        background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+/* Data Display Card */
+.data-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+}
+
+.data-card-header {
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.data-card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--gray-900);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.data-card-subtitle {
+    font-size: 1.5rem;
+    color: var(--gray-600);
+    margin-top: 0.25rem;
+}
+
+.empty-state {
+    padding: 4rem 2rem;
+    text-align: center;
+    color: var(--gray-500);
+}
+
+.empty-state-icon {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto 1rem;
+    background: var(--gray-100);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--gray-400);
+}
+
+/* Modern Table */
+.table-container {
     overflow-x: auto;
-    white-space: nowrap;
+    max-height: 70vh;
 }
 
-th, td {
-    padding: 12px;
-    border: 1px solid #ddd;
-    text-align: left;
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1.3rem;
 }
 
-th {
-    background-color: #f2f2f2;
-}
+    .modern-table th {
+        background: var(--gray-50);
+        color: var(--gray-700);
+        font-weight: 600;
+        padding: 1rem 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--gray-200);
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
 
-tr:hover {
-    background-color: #f1f1f1;
-}
+    .modern-table td {
+        padding: 0.875rem 0.75rem;
+        border-bottom: 1px solid var(--gray-100);
+        color: var(--gray-900);
+    }
+
+    .modern-table tbody tr:hover {
+        background: var(--gray-50);
+    }
 
 .sticky-id {
     position: sticky;
     left: 0;
-    background: white;
-    z-index: 10;
-    font-weight: bold;
-    border-right: 2px solid #ccc;
+    background: var(--white);
+    font-weight: 600;
+    color: var(--primary);
+    border-right: 1px solid var(--gray-200);
+    z-index: 5;
 }
 
 .sticky-id-header {
     position: sticky;
     left: 0;
-    background: #f2f2f2;
-    z-index: 10;
-    font-weight: bold;
-    border-right: 2px solid #ccc;
+    background: var(--gray-50) !important;
+    border-right: 1px solid var(--gray-200);
+    z-index: 15;
 }
 
-.option {
-    background: #D8D8D8;
-    padding: 15px;
+.modern-table tbody tr:hover .sticky-id {
+    background: var(--gray-50);
 }
 
-label {
-    margin-right: 5px;
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 1.5rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-.header {
-    font-size: 18px;
-    padding: 5px;
-    margin-bottom: 20px;
+.status-success {
+    background: rgb(16 185 129 / 0.1);
+    color: var(--success);
 }
 
-/* CSS for that Add button in Well page */
-/* From Uiverse.io by andrew-demchenk0 */
-.button {
-    position: relative;
-    width: 150px;
-    height: 40px;
-    cursor: pointer;
+.status-warning {
+    background: rgb(245 158 11 / 0.1);
+    color: var(--warning);
+}
+
+.status-error {
+    background: rgb(239 68 68 / 0.1);
+    color: var(--danger);
+}
+
+/* Loading State */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
     display: flex;
     align-items: center;
-    border: 1px solid #b595bb;
-    background-color: #b595bb;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+    border-radius: var(--radius-lg);
 }
 
-.button, .button__icon, .button__text {
-    transition: all 0.3s;
+.spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid var(--gray-200);
+    border-top: 2px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
-    .button .button__text {
-        transform: translateX(30px);
-        color: #fff;
-        font-weight: 600;
+@@keyframes spin {
+    0% {
+        transform: rotate(0deg);
     }
 
-    .button .button__icon {
-        position: absolute;
-        transform: translateX(109px);
-        height: 100%;
-        width: 39px;
-        background-color: #ad6fb8;
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Scroll to Top Button */
+.scroll-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.2s ease;
+    z-index: 1000;
+}
+
+    .scroll-top:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .scroll-top.visible {
         display: flex;
-        align-items: center;
-        justify-content: center;
     }
 
-    .button .svg {
-        width: 30px;
-        stroke: #fff;
+/* Responsive Design */
+@@media (max-width: 768px) {
+    .main-container {
+        padding: 1rem;
+        gap: 1.5rem;
     }
 
-    .button:hover {
-        background: #b595bb;
+    .header-content {
+        padding: 0 1rem;
     }
 
-        .button:hover .button__text {
-            color: transparent;
+    .well-selection-card,
+    .data-card-header {
+        padding: 1.5rem;
+    }
+
+    .card-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .modern-table {
+        font-size: 1.4rem;
+    }
+
+        .modern-table th,
+        .modern-table td {
+            padding: 0.5rem 0.375rem;
         }
 
-        .button:hover .button__icon {
-            width: 148px;
-            transform: translateX(0);
-        }
+    .logo h1 {
+        font-size: 1.25rem;
+    }
+}
 
-    .button:active .button__icon {
-        background-color: #2e8644;
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(1rem);
     }
 
-    .button:active {
-        border: 1px solid #2e8644;
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
+}
+
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+@@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-1rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Pages.Shared.Pages_Shared__Layout> Localizer
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -7,7 +9,7 @@
     <link rel="stylesheet" href="~/css/layout.css" />
     <environment include="Development">
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-         <link rel="stylesheet" href="~/css/site.css" /> 
+        <link rel="stylesheet" href="~/css/site.css" />
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
@@ -24,38 +26,137 @@
 <body>
     <nav class="navbar navbar-inverse">
         <div class="container-fluid">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="#">HydroCarbon Calculation</a>
-            </div>
             <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Home</a></li>
+                <li class="active"><a href="/Dashboard">@Localizer["Dashboard"]</a></li>
                 <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">Components <span class="caret"></span></a>
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">@Localizer["Components"] <span class="caret"></span></a>
                     <ul class="dropdown-menu">
                         <li><a href="/HP_Gas">Hp Gas</a></li>
-                        <li><a href="/CompressorInfo">Compressor</a></li>
+                        <li><a href="/CompressorInfo">@Localizer["Compressor"]</a></li>
                         <li><a href="/Well">Well</a></li>
-                        <li><a href="/MPA">Monthly Production Allocation</a></li>
+                        <li><a href="/MPA">@Localizer["MonthlyProductionAllocation"]</a></li>
+                        <li><a href="/DailyWellData">@Localizer["DailyWellData"]</a></li>
                     </ul>
                 </li>
                 <li class="dropdown">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="#">Forms<span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        <li><a href="/WellTestForm">WellTestSummary Form</a></li>
-                        <li><a href="/Index">Production Form</a></li>
+                        <li><a href="/WellTestForm">@Localizer["WellTestSummaryForm"]</a></li>
+                        <li><a href="/Index">@Localizer["ProductionForm"]</a></li>
                     </ul>
                 </li>
                 <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">Calculation<span class="caret"></span></a>
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">@Localizer["Calculation"]<span class="caret"></span></a>
                     <ul class="dropdown-menu">
-                        <li><a href="#">Calculation 1</a></li>
-                        <li><a href="#">Calculation 2</a></li>
+                        <li><a href="/Calculations1">@Localizer["Calculation"]</a></li>
+                        <li><a href="/Calculations2">@Localizer["Calculations2"]</a></li>
                     </ul>
                 </li>
-                @* <li><a href="#">Page 2</a></li> *@
-                @* <li><a href="#">Page 3</a></li> *@
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        @{
+                            var currentCulture = System.Threading.Thread.CurrentThread.CurrentCulture.Name;
+                            var languageText = "Languages";
+                            switch (currentCulture)
+                            {
+                                case "ru":
+                                case "ru-RU":
+                                    languageText = "Языки";
+                                    break;
+                                case "tk":
+                                case "tk-TM":
+                                    languageText = "Diller";
+                                    break;
+                                default:
+                                    languageText = "Languages";
+                                    break;
+                            }
+                        }
+                        @languageText <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="@(currentCulture.StartsWith("en") ? "active" : "")">
+                            @Html.ActionLink("🇺🇸 English", "SetLanguage", "Dashboard", new { culture = "en-US", returnUrl = Context.Request.Path + Context.Request.QueryString }, new { })
+                        </li>
+                        <li class="@(currentCulture.StartsWith("ru") ? "active" : "")">
+                            @Html.ActionLink("🇷🇺 Русский", "SetLanguage", "Dashboard", new { culture = "ru-RU", returnUrl = Context.Request.Path + Context.Request.QueryString }, new { })
+                        </li>
+                        <li class="@(currentCulture.StartsWith("tk") ? "active" : "")">
+                            @Html.ActionLink("🇹🇲 Türkmen", "SetLanguage", "Dashboard", new { culture = "tk-TM", returnUrl = Context.Request.Path + Context.Request.QueryString }, new { })
+                        </li>
+                    </ul>
+                </li>
             </ul>
         </div>
+    </nav>
+    <nav>
+        <header class="header-menu">
+            <div class="menu-area">
+                <div class="header-item">
+                    <a class="menu-button" href="/Dashboard">
+                        <img class="icon-image" src="~/images/dashboard.png" asp-append-version="true" alt="Dashboard">
+                        <span>@Localizer["Dashboard"]</span>
+                    </a>
+                </div>
+                <span class="menu-area-title">@Localizer["Dashboard"]</span>
+            </div>
+            <div class="separator"></div>
+            <div class="menu-area">
+                <div class="header-item">
+                    <a class="menu-button" href="/HP_Gas">
+                        <img class="icon-image" src="~/images/hp_gas.jpeg" asp-append-version="true" alt="HP Gas Button">
+                        <span>@Localizer["HPGas"]</span>
+                    </a>
+                    <a class="menu-button" href="/CompressorInfo">
+                        <img class="icon-image" src="~/images/compressor.png" asp-append-version="true" alt="Compressor Button">
+                        <span>@Localizer["Compressor"]</span>
+                    </a>
+                    <a class="menu-button" href="/Well">
+                        <img class="icon-image" src="~/images/well.png" asp-append-version="true" alt="Well Button">
+                        <span>@Localizer["Well"]</span>
+                    </a>
+                    <a class="menu-button" href="/MPA">
+                        <img class="icon-image" src="~/images/monthly_production_allocation_2.png" asp-append-version="true" alt="Monthly Production Allocation Button">
+                        <span>@Localizer["MonthlyProductionAllocation"]</span>
+                    </a>
+                    <a class="menu-button" href="/DailyWellData">
+                        <img class="icon-image" src="~/images/daily_well_data_3.png" asp-append-version="true" alt="Daily Well Data Button">
+                        <span>@Localizer["DailyWellData"]</span>
+                    </a>
+                </div>
+                <span class="menu-area-title">@Localizer["Components"]</span>
+            </div>
+            <div class="separator"></div>
+            <div class="menu-area">
+                <div class="header-item">
+                    <a class="menu-button" href="/WellTestForm">
+                        <img class="icon-image" src="~/images/well_test_summary_form.jpeg" asp-append-version="true" alt="Well Test Summary Form Button">
+                        <span>@Localizer["WellTestSummaryForm"]</span>
+                    </a>
+                    <a class="menu-button" href="/Index">
+                        <img class="icon-image" src="~/images/production_form.png" asp-append-version="true" alt="Production Form Button">
+                        <span>@Localizer["ProductionForm"]</span>
+                    </a>
+                </div>
+                <span class="menu-area-title">@Localizer["Forms"]</span>
+            </div>
+            <div class="separator"></div>
+            <div class="menu-area">
+                <div class="flex items-center">
+                    <a class="menu-button" href="/Calculations1">
+                        <img class="icon-image" src="~/images/calculation.jpeg" asp-append-version="true" alt="Calculation 1 Button">
+                        <span>@Localizer["Calculation"]</span>
+                    </a>
+                    <a class="menu-button" href="/Calculations2">
+                        <img class="icon-image" src="~/images/calculation.jpeg" asp-append-version="true" alt="Calculation 2 Button">
+                        <span>@Localizer["Calculations2"]</span>
+                    </a>
+                </div>
+                <span class="menu-area-title">@Localizer["Calculation"]</span>
+            </div>
+        </header>
     </nav>
     <div class="body-content">
         @RenderBody()
@@ -85,5 +186,17 @@
         <script src="~/js/site.min.js" asp-append-version="true"></script>
     </environment>
     @RenderSection("Scripts", required: false)
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const menuButtons = document.querySelectorAll('.menu-button');
+
+            menuButtons.forEach(button => {
+                if (button.getAttribute('href') === currentPath) {
+                    button.classList.add('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

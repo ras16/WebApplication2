@@ -1,0 +1,1215 @@
+﻿    @page
+    @model WebApplication2.Pages.DashboardModel
+    @using Microsoft.Extensions.Localization
+    @inject IStringLocalizer<DashboardModel> Localizer
+    @{
+
+    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="~/css/dashboard.css" />
+    <title>Compressor Wells</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
+</head>
+<body>
+    <div class="container-fluid dashboard-container">
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+        </div>
+
+        <div class="container-fluid dashboard-container">
+            <h1 class="page-header"><strong>@Localizer["DashboardHeader"]</strong></h1>
+
+            <!-- Date Filter Section -->
+            <div class="date-filter-container">
+                <h3>📊 @Localizer["DashboardTimeFilter"]</h3>
+                <div class="filter-controls">
+                    <a href="?DateFilter=lastweek" class="filter-button @(Model.DateFilter == "lastweek" ? "active" : "")">
+                        @Localizer["LastWeek"]
+                    </a>
+                    <a href="?DateFilter=last30days" class="filter-button @(Model.DateFilter == "last30days" ? "active" : "")">
+                        @Localizer["Last30Days"]
+                    </a>
+                    <a href="?DateFilter=monthly" class="filter-button @(Model.DateFilter == "monthly" ? "active" : "")">
+                        @Localizer["Monthly"]
+                    </a>
+                    <a href="?DateFilter=quarterly" class="filter-button @(Model.DateFilter == "quarterly" ? "active" : "")">
+                        @Localizer["Quarterly"]
+                    </a>
+                    <a href="?DateFilter=yearly" class="filter-button @(Model.DateFilter == "yearly" ? "active" : "")">
+                        @Localizer["Yearly"]
+                    </a>
+                    <div class="filter-info">
+                        <strong>@Model.FilterDescription</strong><br>
+                        <small>@Model.FilterStartDate to @Model.FilterEndDate</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Metrics Row -->
+            <div class="row mb-4">
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="card metric-card">
+                        <div class="metric-icon">🔥</div>
+                        <div class="metric-title">@Localizer["TotalHPGAS"]</div>
+                        <div class="metric-value">@Model.TotalHPGas</div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="card metric-card">
+                        <div class="metric-icon">⛽</div>
+                        <div class="metric-title">@Localizer["TotalWells"]</div>
+                        <div class="metric-value">@Model.TotalWells</div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="card metric-card">
+                        <div class="metric-icon">⚙️</div>
+                        <div class="metric-title">@Localizer["TotalCompressors"]</div>
+                        <div class="metric-value">@Model.TotalCompressors</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Treemap for Key Production Metrics -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">Key Production Metrics - @Model.FilterDescription</div>
+                        <div class="card-body">
+                            <div class="treemap-container">
+                                <div class="treemap-item" style="background-color: #3498db;">
+                                    <div class="treemap-label">@Localizer["AverageGasOilRatio"]</div>
+                                    <div class="treemap-value">@Model.AverageGORRate</div>
+                                </div>
+                                <div class="treemap-item" style="background-color: #e74c3c;">
+                                    <div class="treemap-label">@Localizer["AverageOilProductionRate"]</div>
+                                    <div class="treemap-value">@Model.AverageOilProductionRate m³/day</div>
+                                </div>
+                                <div class="treemap-item" style="background-color: #2ecc71;">
+                                    <div class="treemap-label">@Localizer["AverageGasProductionRate"]</div>
+                                    <div class="treemap-value">@Model.AverageGasProductionRate × 10⁶ m³/day</div>
+                                </div>
+                                <div class="treemap-item" style="background-color: #9b59b6;">
+                                    <div class="treemap-label">@Localizer["AverageWaterProductionRate"]</div>
+                                    <div class="treemap-value">@Model.AverageWaterProductionRate m³/day</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- First Row of Charts -->
+            <div class="row mb-4">
+                <div class="col-lg-8 mb-3">
+                    <div class="card">
+                        <div class="card-header">@Localizer["ProductionTrendsbyVolume"] - @Model.FilterDescription</div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="productionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-3">
+                    <div class="card">
+                        <div class="card-header">@Localizer["VishkabyProductionArea"]</div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="downtimeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Second Row of Charts -->
+            <div class="row mb-4">
+                <div class="col-lg-6 mb-3">
+                    <div class="card">
+                        <div class="card-header">@Localizer["CompressorPerformanceMetrics"] - @Model.FilterDescription</div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="compressorDowntimeChart"></canvas>
+                            </div>
+                            <h5 class="text-center mt-2">@Localizer["DowntimebyCompressor"]</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-3">
+                    <div class="card">
+                        <div class="card-header">@Localizer["WellClassification"] - @Model.FilterDescription</div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-5 mb-3">
+                                    <div class="chart-container">
+                                        <canvas id="flaredGasChart"></canvas>
+                                    </div>
+                                    <h5 class="text-center mt-2">@Localizer["FlaredGasbyProdArea"]</h5>
+                                </div>
+                                <div class="col-md-7 mb-3">
+                                    <div class="chart-container">
+                                        <canvas id="wellTreemap"></canvas>
+                                    </div>
+                                    <h5 class="text-center mt-2">@Localizer["WellsbyType"]</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FlayerAloc Production Trends Row -->
+            <div class="row mb-4">
+                <!-- LEFT COLUMN: Production Trends by Layer -->
+                <div class="col-lg-6 mb-3">
+                    <div class="card">
+                        <div class="card-header">@Localizer["ProductionTrendsbyLayer"] - @Model.FilterDescription</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="layerSelect" class="form-label">@Localizer["SelectLayer"]:</label>
+                                <select id="layerSelect" class="form-select" style="width: 200px; display: inline-block;">
+                                    <!-- Layers will be populated dynamically -->
+                                </select>
+                                <label for="dataTypeSelect" class="form-label ms-3">@Localizer["SelectDataType"]:</label>
+                                <select id="dataTypeSelect" class="form-select" style="width: 200px; display: inline-block;">
+                                    <option value="all">@Localizer["AllTypes"]</option>
+                                    <option value="oil">@Localizer["Oil"]</option>
+                                    <option value="gas">@Localizer["Gas"]</option>
+                                    <option value="water">@Localizer["Water"]</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="flayerAlocChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: Production Trends by Well ID -->
+                <div class="col-lg-6 mb-3">
+                    <div class="card">
+                        <div class="card-header">@Localizer["ProductionTrendsbyWellName"] - @Model.FilterDescription</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="wellIdSelect" class="form-label">@Localizer["SelectWellName"]:</label>
+                                <select id="wellIdSelect" class="form-select" style="width: 200px; display: inline-block;">
+                                    <!-- Well IDs will be populated dynamically -->
+                                </select>
+                                <label for="wellDataTypeSelect" class="form-label ms-3">@Localizer["SelectDataType"]:</label>
+                                <select id="wellDataTypeSelect" class="form-select" style="width: 200px; display: inline-block;">
+                                    <option value="all">@Localizer["AllTypes"]</option>
+                                    <option value="oil">Oil</option>
+                                    <option value="gas">Gas</option>
+                                    <option value="water">Water</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="wellProductionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+        <script>
+            // Production areas data from server
+            const prodAreasData = @Html.Raw(Model.ProdAreasDataJson);
+            const wellTypeData = @Html.Raw(Model.WellTypeDataJson);
+            const productionTrendsData = @Html.Raw(Model.ProductionTrendsDataJson);
+            const flaredGasByProdAreaData = @Html.Raw(Model.FlaredGasByProdAreaJson);
+            const compressorDowntimeData = @Html.Raw(Model.CompressorDowntimeDataJson);
+            const flayerAlocTrendsData = @Html.Raw(Model.FlayerAlocTrendsDataJson);
+            const flayerAlocData = @Html.Raw(Model.FlayerAlocDataJson);
+
+            // Filter information
+            const currentFilter = '@Model.DateFilter';
+            const filterDescription = '@Model.FilterDescription';
+
+            let flayerAlocChart;
+            let wellProductionChart;
+
+            // Add loading functionality
+            function showLoading() {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+            }
+
+            function hideLoading() {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+
+            // Wait for all content to load
+            document.addEventListener('DOMContentLoaded', function() {
+                // Add loading to filter buttons
+                const filterButtons = document.querySelectorAll('.filter-button');
+                filterButtons.forEach(button => {
+                    button.addEventListener('click', function(e) {
+                        showLoading();
+                    });
+                });
+
+                // Hide loading when page is fully loaded
+                window.addEventListener('load', function() {
+                    hideLoading();
+                });
+
+                // Initialize all charts
+                initializeCharts();
+            });
+
+            function initializeCharts() {
+                // Production Trend Chart - Using real data from WellTestSummary
+                const productionCtx = document.getElementById('productionChart').getContext('2d');
+
+                // Prepare data for the chart
+                let chartLabels = [];
+                let oilData = [];
+                let waterData = [];
+                let gasData = [];
+
+                // Check if we have data from the server
+                if (productionTrendsData && productionTrendsData.length > 0) {
+                    // Use real data from database
+                    chartLabels = productionTrendsData.map(item => item.PeriodName);
+                    oilData = productionTrendsData.map(item => item.TotalOil);
+                    waterData = productionTrendsData.map(item => item.TotalWater);
+                    gasData = productionTrendsData.map(item => item.TotalGas);
+
+                    console.log('Using production trends data from database:', productionTrendsData);
+                } else {
+                    // Fallback to default data if no data available
+                    console.log('No production trends data available, using fallback zeros');
+                    chartLabels = getDefaultLabels();
+                    oilData = Array(chartLabels.length).fill(0);
+                    waterData = Array(chartLabels.length).fill(0);
+                    gasData = Array(chartLabels.length).fill(0);
+                }
+
+                const productionData = {
+                    labels: chartLabels,
+                    datasets: [
+                        {
+                            label: 'Gas (10⁶ m³/day)',
+                            data: gasData,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Oil (m³/day)',
+                            data: oilData,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Water (m³/day)',
+                            data: waterData,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                };
+
+                const productionConfig = {
+                    type: 'line',
+                    data: productionData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    boxWidth: 10
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                padding: 10,
+                                cornerRadius: 6,
+                                titleFont: {
+                                    size: 14
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        // Format numbers with commas for better readability
+                                        label += new Intl.NumberFormat().format(context.raw);
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Volume'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: getTimeAxisLabel()
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        animations: {
+                            x: {
+                                type: 'number',
+                                easing: 'linear',
+                                duration: 2000,
+                                from: NaN,
+                                delay(ctx) {
+                                    if (ctx.type !== 'data' || ctx.xStarted) {
+                                        return 0;
+                                    }
+                                    ctx.xStarted = true;
+                                    return ctx.index * 300;
+                                }
+                            },
+                            y: {
+                                type: 'number',
+                                easing: 'linear',
+                                duration: 2000,
+                                from: (ctx) => {
+                                    if (ctx.type === 'data') {
+                                        if (ctx.mode === 'default' && !ctx.dropped) {
+                                            ctx.dropped = true;
+                                            return 0;
+                                        }
+                                    }
+                                    return NaN;
+                                }
+                            }
+                        }
+                    }
+                };
+
+                const productionChart = new Chart(productionCtx, productionConfig);
+
+                // Initialize other charts
+                createDowntimeChart();
+                createCompressorDowntimeChart();
+                createFlaredGasChart();
+                createWellPurposeChart();
+                createFlayerAlocChart();
+                createWellProductionChart();
+
+                // Add animation to treemap items
+                animateTreemapItems();
+            }
+
+            function getDefaultLabels() {
+                switch(currentFilter.toLowerCase()) {
+                    case 'lastweek':
+                    case 'last30days':
+                        // Return day labels for shorter periods
+                        const days = [];
+                        const numDays = currentFilter === 'lastweek' ? 7 : 30;
+                        for (let i = numDays - 1; i >= 0; i--) {
+                            const date = new Date();
+                            date.setDate(date.getDate() - i);
+                            days.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                        }
+                        return days;
+                    default:
+                        return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                }
+            }
+
+            function getTimeAxisLabel() {
+                switch(currentFilter.toLowerCase()) {
+                    case 'lastweek':
+                    case 'last30days':
+                        return 'Day';
+                    default:
+                        return 'Month';
+                }
+            }
+
+            // Vishka by Production Area Pie Chart - Using real data
+            function createDowntimeChart() {
+                const downtimeCtx = document.getElementById('downtimeChart').getContext('2d');
+
+                // Extract labels and data from server data
+                const prodAreaLabels = prodAreasData.map(item => item.Label);
+                const prodAreaValues = prodAreasData.map(item => item.Value);
+
+                // Generate colors for each area
+                const backgroundColors = [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 159, 64, 0.8)',
+                    'rgba(199, 199, 199, 0.8)',
+                    'rgba(83, 102, 255, 0.8)'
+                ];
+
+                const downtimeChart = new Chart(downtimeCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: prodAreaLabels,
+                        datasets: [{
+                            data: prodAreaValues,
+                            backgroundColor: backgroundColors.slice(0, prodAreaLabels.length),
+                            borderColor: 'white',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    padding: 15,
+                                    usePointStyle: true,
+                                    boxWidth: 8
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.label}: ${context.raw}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // NEW: Compressor Downtime Chart
+            function createCompressorDowntimeChart() {
+                const compressorDowntimeCtx = document.getElementById('compressorDowntimeChart').getContext('2d');
+
+                // Extract labels and data from server data
+                const compressorLabels = compressorDowntimeData.map(item => item.Label);
+                const compressorDowntimeValues = compressorDowntimeData.map(item => item.Value);
+
+                // Generate colors for each compressor
+                const compressorColors = [
+                    'rgba(231, 76, 60, 0.8)',    // Red
+                    'rgba(52, 152, 219, 0.8)',   // Blue
+                    'rgba(241, 196, 15, 0.8)',   // Yellow
+                    'rgba(155, 89, 182, 0.8)',   // Purple
+                    'rgba(230, 126, 34, 0.8)',   // Orange
+                    'rgba(46, 204, 113, 0.8)',   // Green
+                    'rgba(149, 165, 166, 0.8)',  // Gray
+                    'rgba(52, 73, 94, 0.8)'      // Dark Gray
+                ];
+
+                const compressorDowntimeChart = new Chart(compressorDowntimeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: compressorLabels,
+                        datasets: [{
+                            label: 'Downtime (hours)',
+                            data: compressorDowntimeValues,
+                            backgroundColor: compressorColors.slice(0, compressorLabels.length),
+                            borderColor: 'white',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                displayColors: false,
+                                callbacks: {
+                                    title: (items) => items[0].label,
+                                    label: (item) => `Downtime: ${item.raw} hours`
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Downtime (hours)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Compressor'
+                                }
+                            }
+                        },
+                        animations: {
+                            y: {
+                                type: 'number',
+                                easing: 'easeOutBounce',
+                                duration: 1000,
+                                from: 0
+                            }
+                        }
+                    }
+                });
+            }
+
+            // NEW: FlaredGas by ProdArea Pie Chart
+            function createFlaredGasChart() {
+                const flaredGasCtx = document.getElementById('flaredGasChart').getContext('2d');
+
+                // Extract labels and data from server data
+                const flaredGasLabels = flaredGasByProdAreaData.map(item => item.Label);
+                const flaredGasValues = flaredGasByProdAreaData.map(item => item.Value);
+
+                // Generate colors for each area (using different colors for distinction)
+                const flaredGasColors = [
+                    'rgba(255, 195, 0, 0.8)',     // Gold
+                    'rgba(255, 87, 34, 0.8)',     // Deep Orange
+                    'rgba(76, 175, 80, 0.8)',     // Green
+                    'rgba(33, 150, 243, 0.8)',    // Blue
+                    'rgba(156, 39, 176, 0.8)',    // Purple
+                    'rgba(255, 152, 0, 0.8)',     // Orange
+                    'rgba(121, 85, 72, 0.8)',     // Brown
+                    'rgba(96, 125, 139, 0.8)'     // Blue Grey
+                ];
+
+                const flaredGasChart = new Chart(flaredGasCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: flaredGasLabels,
+                        datasets: [{
+                            data: flaredGasValues,
+                            backgroundColor: flaredGasColors.slice(0, flaredGasLabels.length),
+                            borderColor: 'white',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    usePointStyle: true,
+                                    boxWidth: 8
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        // Format the value with appropriate decimals
+                                        const value = typeof context.raw === 'number'
+                                            ? context.raw.toFixed(2)
+                                            : context.raw;
+                                        return `${context.label}: ${value} (FlaredGas)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Function to create a bar chart for well types instead of treemap
+            function createWellPurposeChart() {
+                const ctx = document.getElementById('wellTreemap').getContext('2d');
+
+                // Extract labels and data from server data
+                const wellTypeLabels = wellTypeData.map(item => item.Label);
+                const wellTypeValues = wellTypeData.map(item => item.Value);
+
+                // If no data available, show placeholder
+                if (wellTypeLabels.length === 0) {
+                    wellTypeLabels.push('No Data');
+                    wellTypeValues.push(0);
+                }
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: wellTypeLabels,
+                        datasets: [{
+                            label: 'Number of Wells',
+                            data: wellTypeValues,
+                            backgroundColor: [
+                                'rgba(52, 152, 219, 0.8)',
+                                'rgba(231, 76, 60, 0.8)',
+                                'rgba(155, 89, 182, 0.8)',
+                                'rgba(241, 196, 15, 0.8)',
+                                'rgba(46, 204, 113, 0.8)',
+                                'rgba(230, 126, 34, 0.8)',
+                                'rgba(149, 165, 166, 0.8)',
+                                'rgba(52, 73, 94, 0.8)'
+                            ].slice(0, wellTypeLabels.length),
+                            borderColor: 'white',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                displayColors: false,
+                                callbacks: {
+                                    title: (items) => items[0].label,
+                                    label: (item) => `Wells: ${item.raw}`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grid: {
+                                    display: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Number of Wells'
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    display: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Well Type'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Animate the treemap items for visual appeal
+            function animateTreemapItems() {
+                const items = document.querySelectorAll('.treemap-item');
+                items.forEach((item, index) => {
+                    item.style.opacity = 0;
+                    setTimeout(() => {
+                        item.style.opacity = 1;
+                        item.style.transform = 'scale(1)';
+                    }, 300 + (index * 150));
+                });
+            }
+
+            // NEW: Function to create FlayerAloc production trends chart
+            function createFlayerAlocChart() {
+                const ctx = document.getElementById('flayerAlocChart').getContext('2d');
+
+                console.log('Creating FlayerAloc chart with data:', flayerAlocTrendsData);
+
+                // Extract layers and populate the select dropdown
+                const layerSelect = document.getElementById('layerSelect');
+                const dataTypeSelect = document.getElementById('dataTypeSelect');
+
+                let layersArray = [];
+
+                if (flayerAlocTrendsData && flayerAlocTrendsData.length > 0) {
+                    // Get all unique layers
+                    const allLayers = new Set();
+                    flayerAlocTrendsData.forEach(periodData => {
+                        if (periodData.Layers) {
+                            Object.keys(periodData.Layers).forEach(layer => allLayers.add(layer));
+                        }
+                    });
+
+                    layersArray = Array.from(allLayers).sort();
+
+                    // Populate layer select with ALL individual layers
+                    layersArray.forEach(layer => {
+                        const option = document.createElement('option');
+                        option.value = layer;
+                        option.textContent = layer;
+                        layerSelect.appendChild(option);
+                    });
+
+                    // Set the first layer as selected by default
+                    if (layersArray.length > 0) {
+                        layerSelect.value = layersArray[0];
+                    }
+                }
+
+                // Initial chart creation (use first layer by default)
+                flayerAlocChart = new Chart(ctx, {
+                    type: 'line',
+                    data: getFlayerAlocChartData(layersArray.length > 0 ? layersArray[0] : '', 'all'),
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    boxWidth: 10
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                padding: 10,
+                                cornerRadius: 6,
+                                titleFont: {
+                                    size: 14
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        label += new Intl.NumberFormat().format(context.raw);
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Volume'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: getTimeAxisLabel()
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        animations: {
+                            x: {
+                                type: 'number',
+                                easing: 'linear',
+                                duration: 1500,
+                                from: NaN,
+                                delay(ctx) {
+                                    if (ctx.type !== 'data' || ctx.xStarted) {
+                                        return 0;
+                                    }
+                                    ctx.xStarted = true;
+                                    return ctx.index * 200;
+                                }
+                            },
+                            y: {
+                                type: 'number',
+                                easing: 'linear',
+                                duration: 1500,
+                                from: (ctx) => {
+                                    if (ctx.type === 'data') {
+                                        if (ctx.mode === 'default' && !ctx.dropped) {
+                                            ctx.dropped = true;
+                                            return 0;
+                                        }
+                                    }
+                                    return NaN;
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Add event listeners for the selects
+                layerSelect.addEventListener('change', updateFlayerAlocChart);
+                dataTypeSelect.addEventListener('change', updateFlayerAlocChart);
+            }
+
+            // Function to get chart data based on selected layer and data type
+            function getFlayerAlocChartData(selectedLayer, selectedDataType) {
+                const datasets = [];
+
+                if (!flayerAlocTrendsData || flayerAlocTrendsData.length === 0) {
+                    return {
+                        labels: getDefaultLabels(),
+                        datasets: []
+                    };
+                }
+
+                const labels = flayerAlocTrendsData.map(item => item.PeriodName);
+
+                // Only show data for the selected layer (one layer at a time)
+                if (selectedDataType === 'all' || selectedDataType === 'oil') {
+                    const oilData = flayerAlocTrendsData.map(periodData =>
+                        periodData.Layers && periodData.Layers[selectedLayer] ? periodData.Layers[selectedLayer].Oil : 0
+                    );
+                    datasets.push({
+                        label: `Oil`,
+                        data: oilData,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    });
+                }
+
+                if (selectedDataType === 'all' || selectedDataType === 'gas') {
+                    const gasData = flayerAlocTrendsData.map(periodData =>
+                        periodData.Layers && periodData.Layers[selectedLayer] ? periodData.Layers[selectedLayer].Gas : 0
+                    );
+                    datasets.push({
+                        label: `Gas`,
+                        data: gasData,
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    });
+                }
+
+                if (selectedDataType === 'all' || selectedDataType === 'water') {
+                    const waterData = flayerAlocTrendsData.map(periodData =>
+                        periodData.Layers && periodData.Layers[selectedLayer] ? periodData.Layers[selectedLayer].Water : 0
+                    );
+                    datasets.push({
+                        label: `Water`,
+                        data: waterData,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    });
+                }
+
+                return {
+                    labels: labels,
+                    datasets: datasets
+                };
+            }
+
+            // Function to update the FlayerAloc chart based on selections
+            function updateFlayerAlocChart() {
+                const selectedLayer = document.getElementById('layerSelect').value;
+                const selectedDataType = document.getElementById('dataTypeSelect').value;
+
+                const newData = getFlayerAlocChartData(selectedLayer, selectedDataType);
+                flayerAlocChart.data = newData;
+                flayerAlocChart.update('active');
+            }
+
+            // Function to create Well Production trends chart
+            function createWellProductionChart() {
+                const ctx = document.getElementById('wellProductionChart').getContext('2d');
+
+                console.log('Creating Well Production chart with data:', flayerAlocData);
+
+                // Extract well IDs and populate the select dropdown
+                const wellIdSelect = document.getElementById('wellIdSelect');
+                const wellDataTypeSelect = document.getElementById('wellDataTypeSelect');
+
+                let wellIdsArray = [];
+
+                if (flayerAlocData && flayerAlocData.length > 0) {
+                    // Get all unique well IDs
+                    const allWellIds = new Set();
+                    flayerAlocData.forEach(entry => {
+                        if (entry.wellid) {
+                            allWellIds.add(entry.wellid);
+                        }
+                    });
+
+                    wellIdsArray = Array.from(allWellIds).sort((a, b) => a - b);
+
+                    // Populate well ID select with ALL individual well IDs
+                    wellIdsArray.forEach(wellId => {
+                        const option = document.createElement('option');
+                        option.value = wellId;
+                        // Try to find the well name if available
+                        const wellName = flayerAlocData.find(item => item.wellid === wellId)?.Name || `Well ${wellId}`;
+                        option.textContent = `${wellName}`;
+                        wellIdSelect.appendChild(option);
+                    });
+
+                    // Set the first well ID as selected by default
+                    if (wellIdsArray.length > 0) {
+                        wellIdSelect.value = wellIdsArray[0];
+                    }
+                }
+
+                // Initial chart creation (use first well ID by default)
+                wellProductionChart = new Chart(ctx, {
+                    type: 'line',
+                    data: getWellProductionChartData(wellIdsArray.length > 0 ? wellIdsArray[0] : '', 'all'),
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    usePointStyle: true,
+                                    boxWidth: 10
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                padding: 10,
+                                cornerRadius: 6,
+                                titleFont: {
+                                    size: 14
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        label += new Intl.NumberFormat().format(context.raw);
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Volume'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: getTimeAxisLabel()
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        animations: {
+                            x: {
+                                type: 'number',
+                                easing: 'linear',
+                                duration: 1500,
+                                from: NaN,
+                                delay(ctx) {
+                                    if (ctx.type !== 'data' || ctx.xStarted) {
+                                        return 0;
+                                    }
+                                    ctx.xStarted = true;
+                                    return ctx.index * 200;
+                                }
+                            },
+                            y: {
+                                type: 'number',
+                                easing: 'linear',
+                                duration: 1500,
+                                from: (ctx) => {
+                                    if (ctx.type === 'data') {
+                                        if (ctx.mode === 'default' && !ctx.dropped) {
+                                            ctx.dropped = true;
+                                            return 0;
+                                        }
+                                    }
+                                    return NaN;
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Add event listeners for the selects
+                wellIdSelect.addEventListener('change', updateWellProductionChart);
+                wellDataTypeSelect.addEventListener('change', updateWellProductionChart);
+            }
+
+            // Function to get well production chart data based on selected well ID and data type
+            function getWellProductionChartData(selectedWellId, selectedDataType) {
+                const datasets = [];
+
+                if (!flayerAlocData || flayerAlocData.length === 0) {
+                    return {
+                        labels: getDefaultLabels(),
+                        datasets: []
+                    };
+                }
+
+                // Filter data for the selected well ID
+                const wellData = flayerAlocData.filter(entry => entry.wellid == selectedWellId);
+
+                // Group data based on current filter
+                let groupedData;
+                let labels;
+
+                if (currentFilter.toLowerCase() === 'lastweek' || currentFilter.toLowerCase() === 'last30days') {
+                    // Group by day for shorter periods
+                    groupedData = {};
+                    wellData.forEach(entry => {
+                        if (entry.date) {
+                            const date = new Date(entry.date);
+                            const dayKey = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+                            if (!groupedData[dayKey]) {
+                                groupedData[dayKey] = { oil: 0, gas: 0, water: 0 };
+                            }
+
+                            groupedData[dayKey].oil += entry.oil || 0;
+                            groupedData[dayKey].gas += entry.gas || 0;
+                            groupedData[dayKey].water += entry.water || 0;
+                        }
+                    });
+
+                    labels = Object.keys(groupedData).sort((a, b) => {
+                        const dateA = new Date(a + ', ' + new Date().getFullYear());
+                        const dateB = new Date(b + ', ' + new Date().getFullYear());
+                        return dateA - dateB;
+                    });
+                } else {
+                    // Group by month for longer periods
+                    groupedData = {};
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+                    months.forEach(month => {
+                        groupedData[month] = { oil: 0, gas: 0, water: 0 };
+                    });
+
+                    wellData.forEach(entry => {
+                        if (entry.date) {
+                            const date = new Date(entry.date);
+                            const monthKey = months[date.getMonth()];
+
+                            groupedData[monthKey].oil += entry.oil || 0;
+                            groupedData[monthKey].gas += entry.gas || 0;
+                            groupedData[monthKey].water += entry.water || 0;
+                        }
+                    });
+
+                    labels = months;
+                }
+
+                // Only show data for the selected well ID (one well at a time)
+                if (selectedDataType === 'all' || selectedDataType === 'oil') {
+                    const oilData = labels.map(label => groupedData[label]?.oil || 0);
+                    datasets.push({
+                        label: `Oil`,
+                        data: oilData,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    });
+                }
+
+                if (selectedDataType === 'all' || selectedDataType === 'gas') {
+                    const gasData = labels.map(label => groupedData[label]?.gas || 0);
+                    datasets.push({
+                        label: `Gas`,
+                        data: gasData,
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    });
+                }
+
+                if (selectedDataType === 'all' || selectedDataType === 'water') {
+                    const waterData = labels.map(label => groupedData[label]?.water || 0);
+                    datasets.push({
+                        label: `Water`,
+                        data: waterData,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    });
+                }
+
+                return {
+                    labels: labels,
+                    datasets: datasets
+                };
+            }
+
+            // Function to update the well production chart based on selections
+            function updateWellProductionChart() {
+                const selectedWellId = document.getElementById('wellIdSelect').value;
+                const selectedDataType = document.getElementById('wellDataTypeSelect').value;
+
+                const newData = getWellProductionChartData(selectedWellId, selectedDataType);
+                wellProductionChart.data = newData;
+                wellProductionChart.update('active');
+            }
+        </script>
+</body>
+</html>

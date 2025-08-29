@@ -1,0 +1,53 @@
+﻿@page
+@model WebApplication2.Pages.Calculations2Model
+@{
+    ViewData["Title"] = "Calculations 2";
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculations 2</title>
+    <link rel="stylesheet" href="~/css/style.css" />
+    <link rel="stylesheet" href="~/css/calculations2Style.css" />
+    <title>Gas Volume Calculations Per Well</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+
+    <h2> Oil and Water Production Calculation </h2>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Well Name</th>
+                <th>Qo</th>
+                <th>Qw</th>
+                <th>Oil (MT)</th>
+                <th>Water (MT)</th>
+                <th>Gas (Mm3)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Calculations2Data)
+            {
+                <tr>
+                    <td>@item.WellName</td>
+                    <td>@item.Qo</td>
+                    <td>@item.Qw</td>
+                    <td>@item.OilMT</td>
+                    <td>@item.WaterMT</td>
+                    <td>@item.GasMm3</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</body>
+</html>

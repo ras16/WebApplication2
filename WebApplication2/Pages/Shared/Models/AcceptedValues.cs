@@ -3,7 +3,7 @@
     public class AcceptedValues
     {
             //Accepted Datasets
-            public required int id { get; set; }
+            public int id { get; set; }
             public required int PAID { get; set; }
             public DateTime? test_date { get; set; }
             public int well_id { get; set; }
@@ -17,22 +17,23 @@
             public double? avg_tht_f { get; set; }
             public double? avg_chp_barg { get; set; }
             public double? avg_oil_m3_per_day { get; set; }
-            public required double? avg_water_m3_per_day { get; set; }
-            public required double? avg_gas_10_6_m3_per_day { get; set; }
-            public required double? gor { get; set; }
-            public required double? avg_inj_gas_rate { get; set; }
-            public required double? oil_sg { get; set; }
-            public required double? gas_sg { get; set; }
-            public required double? oil_mt_per_day { get; set; }
-            public required double? nacl_ppm { get; set; }
-            public required double? bsw { get; set; }
-            public required string? test_company { get; set; }
-            public required string? rig_kit { get; set; }
-            public required string? entered_by { get; set; }
-            public required int? no_prod { get; set; }
-            public required string? comments { get; set; }
-            public required double? interval_top { get; set; }
-            public required double? interval_bottom { get; set; }
-            public required int? representative_ind { get; set; }
+            public double? avg_water_m3_per_day { get; set; }
+            public double? avg_gas_10_6_m3_per_day { get; set; }
+            public double? gor { get; set; }
+            public double? avg_inj_gas_rate { get; set; }
+            public double? oil_sg { get; set; }
+            public double? gas_sg { get; set; }
+            public double? oil_mt_per_day { get; set; }
+            public double? nacl_ppm { get; set; }
+            public double? bsw { get; set; }
+            public string? test_company { get; set; }
+            public string? rig_kit { get; set; }
+            public string? entered_by { get; set; }
+            public int? no_prod { get; set; }
+            public string? comments { get; set; }
+            public double? interval_top { get; set; }
+            public double? interval_bottom { get; set; }
+            public int? representative_ind { get; set; }
+            public int? DaysOn { get; set; }
     }
 }

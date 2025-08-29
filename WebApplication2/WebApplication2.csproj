@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
@@ -7,11 +7,16 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Remove="Pages\Shared\Models\Calculation2.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
       <None Include="wwwroot\css\style.css" />
     </ItemGroup>
 
     <ItemGroup>
       <PackageReference Include="bootstrap" Version="5.3.3" />
+      <PackageReference Include="itext7" Version="9.2.0" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.2" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     </ItemGroup>

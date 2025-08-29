@@ -1,35 +1,38 @@
-
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using WebApplication2.Pages.Shared.Models;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Production.Data;
+using WebApplication2.Pages.Shared.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace WebApplication2.Pages
+public class IndexModel : PageModel
 {
-    public class IndexModel : PageModel
+    private readonly ApplicationDbContext _db;
+
+    public List<Prod_Areas_TBL> Prod_Areas_TBL { get; set; } = new List<Prod_Areas_TBL>();
+
+    [BindProperty]
+    public DailyFieldProduction Form { get; set; }
+
+    public IndexModel(ApplicationDbContext db)
     {
-        private readonly ApplicationDbContext _db;
+        _db = db;
+    }
 
-        [BindProperty]
-        public FormData Form { get; set; }
+    public async Task OnGetAsync()
+    {
+        Prod_Areas_TBL = await _db.Prod_Areas_TBL.ToListAsync();
+    }
 
-        public IndexModel(ApplicationDbContext db)
+    public async Task<IActionResult> OnPostAsync()
+    {
+        if (!ModelState.IsValid)
         {
-            _db = db;
+            Prod_Areas_TBL = await _db.Prod_Areas_TBL.ToListAsync();
+            return Page();
         }
 
-        public async Task<IActionResult> OnPostAsync()
-        {
-            if (!ModelState.IsValid)
-            {
-                return Page();
-            }
-
-            _db.FormDataEntries.Add(Form);
-            await _db.SaveChangesAsync();
-
-            return RedirectToPage("Results"); // Redirect to table page after submitting
-        }
+        _db.DailyFieldProductionEntries.Add(Form);
+        await _db.SaveChangesAsync();
+        return RedirectToPage("Results");
     }
 }

@@ -1,0 +1,46 @@
+﻿@model WebApplication2.Pages.Calculation1
+
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4>Calculations Data</h4>
+        <span class="badge bg-primary">@Model.StartDate.ToString("MMM d, yyyy") - @Model.EndDate.ToString("MMM d, yyyy")</span>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Export Gas (mmscfd)</th>
+                        <th>Flared Gas (mmscfd)</th>
+                        <th>HP Gas Flow (m³/day)</th>
+                        <th>Compressor Gas Rate</th>
+                        <th>Comp Fuel Gas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.CalculationsData != null && Model.CalculationsData.Any())
+                    {
+                        @foreach (var item in Model.CalculationsData)
+                        {
+                            <tr>
+                                <td>@item.CalcDate.ToString("yyyy-MM-dd")</td>
+                                <td>@(item.ExportGas?.ToString("N2") ?? "N/A")</td>
+                                <td>@(item.FlaredGas?.ToString("N2") ?? "N/A")</td>
+                                <td>@(item.HPGasFlow?.ToString("N2") ?? "N/A")</td>
+                                <td>@(item.CompressorGasRate?.ToString("N2") ?? "N/A")</td>
+                                <td>@(item.CompFuelGas?.ToString("N2") ?? "N/A")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center">No data available. Click "Refresh Data" to fetch from the database.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

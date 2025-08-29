@@ -19,7 +19,6 @@ namespace WebApplication2.Pages
         public WellTestFormModel (ApplicationDbContext db)
         {
             _db = db;
-
         }
 
         public async Task OnGetAsync()
